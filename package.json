@@ -1,0 +1,13 @@
+{
+  "name": "front-service",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "concurrently \"npm run start --prefix client\" \"npm run start --prefix server\""
+  },
+  "dependencies": {
+    "front-service": "file:"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
