@@ -12,6 +12,7 @@ const fs = require('fs');
 require('dotenv').config();
 
 app.use((req, res, next) => {
+  console.log("Host Header:", req.headers.host);
   req.setTimeout(0); // 시간 제한 없음
   res.setTimeout(0);
   next();

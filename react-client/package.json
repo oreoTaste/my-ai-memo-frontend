@@ -61,7 +61,7 @@
     "compress": true,
     "inline": true,
     "allowedHosts": [
-      ".iptime.org"
+      "oreotaste.iptime.org:9999"
     ]
   }
 }
