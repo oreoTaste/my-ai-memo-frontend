@@ -5,7 +5,7 @@ const path = require('path');
 const session = require('express-session');
 const app = express();
 const multer = require("multer");
-const port = 5000; // Express 서버가 실행되는 포트
+const port = process.env.PORT; // Express 서버가 실행되는 포트
 const FormData = require('form-data');
 const fs = require('fs');
 
@@ -207,5 +207,5 @@ app.get('*', (req, res) => {
 
 // 서버 시작
 app.listen(port, () => {
-  console.log(`서버가 http://192.168.56.1:${port}에서 실행 중입니다.`);
+  console.log(`서버가 ${port}번 port에서 실행 중입니다.`);
 });
