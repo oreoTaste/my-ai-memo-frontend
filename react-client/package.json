@@ -61,7 +61,9 @@
     "compress": true,
     "inline": true,
     "allowedHosts": [
-      "oreotaste.iptime.org:9999"
+      "oreotaste.iptime.org:9999",
+      "192.168.0.36",
+      "localhost"
     ]
   }
 }
