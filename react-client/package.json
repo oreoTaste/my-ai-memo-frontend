@@ -56,14 +56,5 @@
   },
   "devDependencies": {
     "tailwindcss": "^3.4.6"
-  },
-  "devServer": {
-    "compress": true,
-    "inline": true,
-    "allowedHosts": [
-      "oreotaste.iptime.org:9999",
-      "192.168.0.36",
-      "localhost"
-    ]
   }
 }
