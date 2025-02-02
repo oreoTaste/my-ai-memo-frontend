@@ -173,6 +173,7 @@ export const TodoRouter = () => {
               seq: 0,
             })
           }
+          calendarType="gregory"
           tileClassName={({ date }) => {
             const isSelected =
               selectedDate?.toISOString() === date.toISOString();
