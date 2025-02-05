@@ -191,15 +191,13 @@ export const TodoRouter = () => {
             );
             return todosForDate.map((todo) => (
             <div key={todo.seq} className="flex items-center">
-              <span className="text-xs">{todo.title}</span>
-              <span
-                className="cursor-pointer ml-2 text-blue-500"
+              <span className="cursor-pointer text-xs"
                 onClick={(e) => {
                   e.stopPropagation(); // 클릭 이벤트 전파 방지
                   openModal(todo);
                 }}
               >
-                ✏️
+                {todo.title}
               </span>
               <span
                 className="cursor-pointer ml-2 text-red-500"
@@ -225,6 +223,7 @@ export const TodoRouter = () => {
           padding: 8px;
           border: 1px solid transparent; /* 기본 테두리 */
           border-radius: 4px; /* 모서리 둥글게 */
+          cursor: none;
         }
 
         .react-calendar__tile.dark-mode {
