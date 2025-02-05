@@ -119,7 +119,7 @@ export const MemoRouter = () => {
               ? {
                   ...memo,
                   ...editMemoContent,
-                  modifiedAt: new Date().toLocaleString(),
+                  modifiedAt: new Date(),
                 }
               : memo
           );
