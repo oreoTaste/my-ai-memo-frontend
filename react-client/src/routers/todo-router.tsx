@@ -223,7 +223,7 @@ export const TodoRouter = () => {
           padding: 8px;
           border: 1px solid transparent; /* 기본 테두리 */
           border-radius: 4px; /* 모서리 둥글게 */
-          cursor: none;
+          cursor: default!important;
         }
 
         .react-calendar__tile.dark-mode {
