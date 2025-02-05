@@ -119,7 +119,7 @@ export const MemoRouter = () => {
               ? {
                   ...memo,
                   ...editMemoContent,
-                  modifiedAt: new Date(),
+                  modifiedAt: new Date().toISOString(),
                 }
               : memo
           );
