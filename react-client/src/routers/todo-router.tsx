@@ -74,7 +74,6 @@ export const TodoRouter = () => {
 
   // 날짜 선택 시 호출되는 함수
   const handleDateChange = (date: Value) => {
-    console.log(date, date instanceof Date);
     if (date instanceof Date) {
       setSelectedDate(date); // 날짜가 Date인 경우만 상태 업데이트
     }
@@ -110,9 +109,10 @@ export const TodoRouter = () => {
             return prev.map((todo) => (todo.seq === todoData.seq ? todoData : todo));
           } else {
             // 추가
-            return [...prev, { ...todoData, seq: response.data.seq }];
+            return [...prev, { ...todoData, seq: response.data.insertResult.raw.seq }];
           }
         });
+
         alert(todoData.seq > 0 ? "할 일이 수정되었습니다." : "할 일이 추가되었습니다.");
         closeModal();
       } else {
@@ -139,6 +139,7 @@ export const TodoRouter = () => {
       } else {
         alert("할 일 삭제에 실패했습니다.");
       }
+      closeModal();
     } catch (err) {
       console.error("할 일 삭제 중 오류 발생:", err);
       alert("삭제 중 오류가 발생했습니다.");
@@ -336,8 +337,10 @@ export const TodoRouter = () => {
               </button>
               {Number(editTodo?.seq) > 0 && (
                 <button onClick={(e) => {
-                    e.stopPropagation(); // 클릭 이벤트 전파 방지
-                    deleteTodo(todo.seq);
+                    if(editTodo != null && editTodo.seq) {
+                      e.stopPropagation(); // 클릭 이벤트 전파 방지
+                      deleteTodo(editTodo.seq);
+                    }
                   }}
                   className={`${isDarkMode
                     ? "bg-red-700 hover:bg-red-900"
