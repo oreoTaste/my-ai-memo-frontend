@@ -199,15 +199,6 @@ export const TodoRouter = () => {
               >
                 {todo.title}
               </span>
-              <span
-                className="cursor-pointer ml-2 text-red-500"
-                onClick={(e) => {
-                  e.stopPropagation(); // 클릭 이벤트 전파 방지
-                  deleteTodo(todo.seq);
-                }}
-              >
-                ❌
-              </span>
             </div>
             ));
           }}
@@ -340,10 +331,23 @@ export const TodoRouter = () => {
                   : "bg-indigo-600 hover:bg-indigo-700"
                   }
                   px-4 py-2 text-white rounded`}
-                
               >
                 {Number(editTodo?.seq) > 0 ? "수정하기" : "추가하기"}
               </button>
+              {Number(editTodo?.seq) > 0 && (
+                <button onClick={(e) => {
+                    e.stopPropagation(); // 클릭 이벤트 전파 방지
+                    deleteTodo(todo.seq);
+                  }}
+                  className={`${isDarkMode
+                    ? "bg-red-700 hover:bg-red-900"
+                    : "bg-red-600 hover:bg-red-700"
+                    }
+                    px-4 py-2 text-white rounded`}
+                  >
+                  삭제
+                </button>
+              )}
               <button
                 onClick={closeModal}
                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
