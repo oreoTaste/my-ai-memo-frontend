@@ -11,7 +11,8 @@ export const LoggedOutRouter = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();  // useNavigate 훅을 사용하여 navigate 함수 생성
   const { isDarkMode } = useDarkMode(); // 다크모드 상태 변수
-    
+  secureLocalStorage.removeItem("user"); // 로그인 정보 삭제 (초기화)
+
   const onSubmit = async (data: any) => {
     const { loginId, password } = data;
     const url = `/user/login`;
@@ -67,6 +68,7 @@ export const LoggedOutRouter = () => {
               }})}
             type="text"
             placeholder="아이디"
+            autoComplete="username"
             className={`w-full p-3 border rounded-md text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 
               ${isDarkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-300'} 
               ${errors.id ? 'border-red-500' : ''
@@ -87,6 +89,7 @@ export const LoggedOutRouter = () => {
             })}
             type="password"
             placeholder="비밀번호"
+            autoComplete="current-password"
             className={`w-full p-3 border rounded-md text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 
               ${isDarkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-300'} 
               ${errors.password ? 'border-red-500' : ''}`}

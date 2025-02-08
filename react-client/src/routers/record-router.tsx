@@ -12,17 +12,8 @@ import {
 } from "chart.js";
 import Navbar from "../components/Navbar";
 import DarkButton from "../components/DarkButton";
-import secureLocalStorage from "react-secure-storage";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
-
-interface User {
-  id: string;
-  loginId: string;
-  name: string;
-  isActive: boolean;
-  createdAt: Date;
-}
 
 interface Record {
   seq: number;
@@ -169,7 +160,6 @@ const CategoryCharts = ({
 };
 
 export const RecordRouter = () => {
-  const [user, setUser] = useState<User | null>(null);
   const [aCodelist, setACodelist] = useState<Code[] | null>(null);
   const [bCodelist, setBCodelist] = useState<Code[] | null>(null);
   const [cCodelist, setCCodelist] = useState<Code[] | null>(null);
@@ -184,89 +174,80 @@ export const RecordRouter = () => {
     };
   }>({});
 
-  useEffect(() => {
-    const storedUser = JSON.parse(String(secureLocalStorage.getItem("user"))) as User;
-    if (storedUser) {
-      setUser(storedUser);
-    }
-  }, []);
-
   // 데이터 로드
   useEffect(() => {
-    if (user) {
-      const fetchData = async () => {
-        try {
-          setIsLoading(true);
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
 
-          // 데이터 로드
-          const [
-            codeResponseCC001,
-            codeResponseCC002,
-            codeResponseCC003,
-            recordResponse,
-          ] = await Promise.all([
-            axios.get(`/code/code-list?codeGroup=CC001`, {
-              withCredentials: true,
-            }),
-            axios.get(`/code/code-list?codeGroup=CC002`, {
-              withCredentials: true,
-            }),
-            axios.get(`/code/code-list?codeGroup=CC003`, {
-              withCredentials: true,
-            }),
-            axios.get("/record/list", { withCredentials: true }),
-          ]);
+        // 데이터 로드
+        const [
+          codeResponseCC001,
+          codeResponseCC002,
+          codeResponseCC003,
+          recordResponse,
+        ] = await Promise.all([
+          axios.get(`/code/code-list?codeGroup=CC001`, {
+            withCredentials: true,
+          }),
+          axios.get(`/code/code-list?codeGroup=CC002`, {
+            withCredentials: true,
+          }),
+          axios.get(`/code/code-list?codeGroup=CC003`, {
+            withCredentials: true,
+          }),
+          axios.get("/record/list", { withCredentials: true }),
+        ]);
 
-          let records: Record[] = [];
+        let records: Record[] = [];
 
-          // 공통코드 데이터 처리
-          const loadedACodes = codeResponseCC001.data.result
-            ? codeResponseCC001.data.codes
-            : [];
-          const loadedBCodes = codeResponseCC002.data.result
-            ? codeResponseCC002.data.codes
-            : [];
-          const loadedCCodes = codeResponseCC003.data.result
-            ? codeResponseCC003.data.codes
-            : [];
+        // 공통코드 데이터 처리
+        const loadedACodes = codeResponseCC001.data.result
+          ? codeResponseCC001.data.codes
+          : [];
+        const loadedBCodes = codeResponseCC002.data.result
+          ? codeResponseCC002.data.codes
+          : [];
+        const loadedCCodes = codeResponseCC003.data.result
+          ? codeResponseCC003.data.codes
+          : [];
 
-          setACodelist(loadedACodes);
-          setBCodelist(loadedBCodes);
-          setCCodelist(loadedCCodes);
-          
-          if (recordResponse.data.result) {
-            records = recordResponse.data.records.map((record: Record) => ({
-              ...record,
-              createdAt: new Date(record.createdAt),
-            }));
-            setRecordlist(records);
-          }
-
-          // 데이터가 모두 로드된 후 그룹화
-          if (
-            loadedACodes.length > 0 &&
-            loadedBCodes.length > 0 &&
-            records.length > 0
-          ) {
-            const granularity = determineGranularity(records);
-            const grouped = groupDataByCategoryAndTime(
-              records,
-              granularity,
-              loadedACodes,
-              loadedBCodes
-            );
-            setGroupedData(grouped);
-          }
-        } catch (error) {
-          console.error("데이터 로드 중 오류:", error);
-        } finally {
-          setIsLoading(false);
+        setACodelist(loadedACodes);
+        setBCodelist(loadedBCodes);
+        setCCodelist(loadedCCodes);
+        
+        if (recordResponse.data.result) {
+          records = recordResponse.data.records.map((record: Record) => ({
+            ...record,
+            createdAt: new Date(record.createdAt),
+          }));
+          setRecordlist(records);
         }
-      };
 
-      fetchData();
-    }
-  }, [user]);
+        // 데이터가 모두 로드된 후 그룹화
+        if (
+          loadedACodes.length > 0 &&
+          loadedBCodes.length > 0 &&
+          records.length > 0
+        ) {
+          const granularity = determineGranularity(records);
+          const grouped = groupDataByCategoryAndTime(
+            records,
+            granularity,
+            loadedACodes,
+            loadedBCodes
+          );
+          setGroupedData(grouped);
+        }
+      } catch (error) {
+        console.error("데이터 로드 중 오류:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>

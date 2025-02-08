@@ -3,17 +3,7 @@ import axios from "axios";
 import { useDarkMode } from "../DarkModeContext";
 import Navbar from "../components/Navbar";
 import DarkButton from "../components/DarkButton";
-import secureLocalStorage from "react-secure-storage";
 import Searchbar from "../components/Searchbar";
-
-// 사용자와 메모 데이터 타입 정의
-interface User {
-  id: string;
-  loginId: string;
-  name: string;
-  isActive: boolean;
-  createdAt: string;
-}
 
 interface UploadFile {
   fileName: string; // 파일 이름은 문자열입니다.
@@ -31,7 +21,6 @@ interface Memo {
 }
 
 export const MemoRouter = () => {
-  const [user, setUser] = useState<User | null>(null);
   const [memos, setMemos] = useState<Memo[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { isDarkMode } = useDarkMode();
@@ -142,43 +131,34 @@ export const MemoRouter = () => {
   };
 
   useEffect(() => {
-    const storedUser = JSON.parse(String(secureLocalStorage.getItem("user"))) as User;
-    if (storedUser) {
-      setUser(storedUser);
-    }
-  }, []);
+    const fetchMemos = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get(`/memo/list`, {
+          withCredentials: true,
+        });
 
-  useEffect(() => {
-    if (user) {
-      const fetchMemos = async () => {
-        setIsLoading(true);
-        try {
-          const response = await axios.get(`/memo/list`, {
-            withCredentials: true,
+        if (response.data.result) {
+          const sortedMemos = response.data.memos.sort((a: Memo, b: Memo) => {
+            return (
+              new Date(b.createdAt).getTime() -
+              new Date(a.createdAt).getTime()
+            );
           });
-
-          if (response.data.result) {
-            const sortedMemos = response.data.memos.sort((a: Memo, b: Memo) => {
-              return (
-                new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime()
-              );
-            });
-            setMemos(sortedMemos);
-          } else {
-            setMemos([]);
-          }
-        } catch (err) {
-          console.error("메모 데이터를 가져오는 중 오류 발생:", err);
+          setMemos(sortedMemos);
+        } else {
           setMemos([]);
-        } finally {
-          setIsLoading(false);
         }
-      };
+      } catch (err) {
+        console.error("메모 데이터를 가져오는 중 오류 발생:", err);
+        setMemos([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-      fetchMemos();
-    }
-  }, [user]);
+    fetchMemos();
+  }, []);
 
   const [expandedMemoIds, setExpandedMemoIds] = useState<Number[]>([]); // 확장된 메모의 ID 저장
 

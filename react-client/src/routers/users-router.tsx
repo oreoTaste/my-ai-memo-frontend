@@ -3,7 +3,6 @@ import axios from "axios";
 import { useDarkMode } from "../DarkModeContext";
 import Navbar from "../components/Navbar";
 import DarkButton from "../components/DarkButton";
-import secureLocalStorage from "react-secure-storage";
 
 // 사용자와 메모 데이터 타입 정의
 interface User {
@@ -15,46 +14,36 @@ interface User {
 }
 
 export const UsersRouter = () => {
-  const [user, setUser] = useState<User | null>(null);
   const [userlist, setUserlist] = useState<User[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { isDarkMode } = useDarkMode();
 
   useEffect(() => {
-    const storedUser = JSON.parse(String(secureLocalStorage.getItem("user"))) as User;
-    if (storedUser) {
-      setUser(storedUser);
-    }
-  }, []);
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get(`/user/list`, {
+          withCredentials: true,
+        });
 
-  useEffect(() => {
-    if (user) {
-      const fetchUsers = async () => {
-        setIsLoading(true);
-        try {
-          const response = await axios.get(`/user/list`, {
-            withCredentials: true,
+        if (response.data.result) {
+          const sortedUsers = response.data.users.sort((a: User, b: User) => {
+            return Number(b.id) - Number(a.id);
           });
-
-          if (response.data.result) {
-            const sortedUsers = response.data.users.sort((a: User, b: User) => {
-              return Number(b.id) - Number(a.id);
-            });
-            setUserlist(sortedUsers);
-          } else {
-            setUserlist([]);
-          }
-        } catch (err) {
-          console.error("사용자 데이터를 가져오는 중 오류 발생:", err);
+          setUserlist(sortedUsers);
+        } else {
           setUserlist([]);
-        } finally {
-          setIsLoading(false);
         }
-      };
+      } catch (err) {
+        console.error("사용자 데이터를 가져오는 중 오류 발생:", err);
+        setUserlist([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-      fetchUsers();
-    }
-  }, [user]);
+    fetchUsers();
+  }, []);
 
   if (isLoading) {
     return (

@@ -64,7 +64,6 @@ export const CodelistRouter = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"group" | "code">("group");
-
   const { isDarkMode } = useDarkMode();
   const navigate = useNavigate();
 
