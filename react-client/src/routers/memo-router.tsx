@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import { useDarkMode } from "../DarkModeContext";
 import Navbar from "../components/Navbar";
 import DarkButton from "../components/DarkButton";
 import secureLocalStorage from "react-secure-storage";
+import Searchbar from "../components/Searchbar";
 
 // 사용자와 메모 데이터 타입 정의
 interface User {
@@ -55,6 +56,7 @@ export const MemoRouter = () => {
   const [memoHeights, setMemoHeights] = useState<Record<number, number>>({});
   const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
   const [files, setFiles] = useState<File[] | null>(null);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     const newMemoHeights: Record<number, number> = {};  // 타입을 명시적으로 설정
@@ -331,6 +333,25 @@ export const MemoRouter = () => {
     }
   };
 
+  const filteredMemos = memos.filter((item) => {
+    if (item?.title?.toLowerCase().includes(query.toLowerCase())) { // 제목
+      return true;
+    }
+    if (item?.raw?.toLowerCase().includes(query.toLowerCase())) { // 내용
+      return true;
+    }
+    if (item?.files?.findIndex(el => el.fileName.toLowerCase().includes(query.toLowerCase())) >= 0) { // 파일
+      return true;
+    }
+    if (item?.subject?.toLowerCase().includes(query.toLowerCase())) { // 주제
+      return true;
+    }
+    if (item?.answer?.toLowerCase().includes(query.toLowerCase())) { // 응답
+      return true;
+    }
+    return false;
+  });
+
   if (isLoading) {
     return (
       <div
@@ -357,6 +378,8 @@ export const MemoRouter = () => {
       <Navbar isDarkMode={isDarkMode} />
       {/* 다크 모드 버튼 */}
       <DarkButton />
+      {/* 검색 탭 */}
+      <Searchbar isDarkMode={isDarkMode} value={query} onChange={setQuery} />
 
       {/* 메모 입력 폼 */}
       <div
@@ -439,10 +462,10 @@ export const MemoRouter = () => {
 
       {/* 메모 목록 */}
       <div className="w-full max-w-4xl">
-        {memos.length === 0 ? (
+        {filteredMemos.length === 0 ? (
           <p className="text-lg text-gray-500">저장된 메모가 없습니다.</p>
         ) : (
-          memos.map((memo, index) => {
+          filteredMemos.map((memo, index) => {
             const isExpanded = expandedMemoIds.includes(memo.seq); // 확장 여부 확인
             const isEditing = editMemoId === memo.seq; // 현재 메모가 수정 중인지 확인
           
