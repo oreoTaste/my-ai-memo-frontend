@@ -187,7 +187,15 @@ app.use('/api/gemini', apiGeminiProxy);
 
 const upload = multer({storage: multer.diskStorage({ // 파일 저장 위치 설정
   destination: (req, file, callback) => {
-    callback(null, './uploads');
+    const uploadDir = './uploads';
+    fs.mkdir(uploadDir, { recursive: true }, (err) => {
+      if (err) {
+        console.error('디렉토리 생성 실패:', err);
+        callback(err, uploadDir);
+      } else {
+        callback(null, uploadDir);
+      }
+    });
   },
   filename: (req, file, callback) => {
     const decodedName = Buffer.from(file.originalname, 'latin1').toString('utf8');
