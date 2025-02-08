@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import  secureLocalStorage  from  "react-secure-storage";
 
@@ -8,15 +7,12 @@ type User = {
 
 const Navbar = ({ isDarkMode }: { isDarkMode: boolean }) => {
   const navigate = useNavigate();
-  let storedUser = {} as User;
-
-  useEffect(() => {
-    const storedUser = JSON.parse(String(secureLocalStorage.getItem("user"))) as User;
-    if (!storedUser) {
-      alert("로그인이 필요합니다.");
-      navigate('/');  // 로그인 성공 후 리디렉션 할 경로 설정
-    }
-  }, [navigate]);
+  const storedUser = JSON.parse(String(secureLocalStorage.getItem("user"))) as User;
+  
+  if (!storedUser) {
+    alert("로그인이 필요합니다.");
+    navigate('/');  // 로그인 성공 후 리디렉션 할 경로 설정
+  }
 
   const tabs = [
     { label: "메모", path: "/user/memos" },
