@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useDarkMode } from "../DarkModeContext";
 import Navbar from "../components/Navbar";
@@ -39,6 +39,7 @@ export const MemoRouter = () => {
   const [title, setTitle] = useState<string>("");
   const [askAI, setAskAI] = useState<boolean>(false);
   const [raw, setRaw] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 수정 상태 관리
   const [editMemoId, setEditMemoId] = useState<number | null>(null); // 현재 수정 중인 메모 ID
@@ -231,11 +232,12 @@ export const MemoRouter = () => {
     try {
       let formData = new FormData();
       if(files) {
-        
-        if (files) {
-          for(let file of files) {
-            formData.append("files", file);
-          }
+        for(let file of files) {
+          formData.append("files", file);
+        }
+        // 파일 입력 초기화
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""; // 파일 입력 필드 리셋
         }
         setFiles(null);
       }
@@ -326,6 +328,8 @@ export const MemoRouter = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);  // 다운로드 후 링크 삭제
+      URL.revokeObjectURL(downloadUrl); // 메모리 정리
+
     } catch (error) {
       console.error('Download error:', error);
     }
@@ -410,7 +414,7 @@ export const MemoRouter = () => {
           value={raw}
           onChange={(e) => setRaw(e.target.value)}
         />
-        <input type="file" multiple onChange={handleFileChange} />
+        <input type="file" multiple ref={fileInputRef} onChange={handleFileChange} />
         {/* {file && <p>선택한 파일: {file.name}</p>} */}
         <div
           className={`flex items-center justify-between mt-4 ${
