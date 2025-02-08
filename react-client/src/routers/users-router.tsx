@@ -57,7 +57,19 @@ export const UsersRouter = () => {
   }, [user]);
 
   if (isLoading) {
-    return <div className="text-center py-4">로딩 중...</div>;
+    return (
+      <div
+      className={`flex flex-col items-center pt-16 min-h-screen ${
+        isDarkMode ? "bg-gray-900 text-white" : "bg-gray-200 text-gray-800"
+      }`}
+      >
+        {/* 상단 탭 */}
+        <Navbar isDarkMode={isDarkMode} />
+        {/* 다크 모드 버튼 */}
+        <DarkButton />
+        <div className="text-center py-4">로딩 중...</div>
+      </div>
+    );
   }
 
   return (

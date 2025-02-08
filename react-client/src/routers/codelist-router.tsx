@@ -229,7 +229,18 @@ export const CodelistRouter = () => {
   };
 
   if (isLoading) {
-    return <div className="text-center py-4">로딩 중...</div>;
+    return (
+      <div
+      className={`flex min-h-screen flex-col items-center pt-16 text-gray-800
+        ${isDarkMode ? "bg-gray-900" : "bg-gray-200"}`}
+    >
+      {/* 상단 탭 */}
+      <Navbar isDarkMode={isDarkMode} />
+      {/* 다크 모드 버튼 */}
+      <DarkButton />
+      <div className="text-center py-4">로딩 중...</div>
+    </div>
+    );
   }
   return (
     <div
