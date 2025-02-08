@@ -6,6 +6,7 @@ import Navbar from "../components/Navbar";
 import DarkButton from "../components/DarkButton";
 import "react-calendar/dist/Calendar.css";
 import { Value } from "react-calendar/dist/cjs/shared/types";
+import Searchbar from "../components/Searchbar";
 
 interface Todo {
   seq: number;
@@ -23,6 +24,7 @@ export const TodoRouter = () => {
   const [newTodoTitle, setNewTodoTitle] = useState<string>("");
   const [newTodoDescription, setNewTodoDescription] = useState<string>("");
   const { isDarkMode } = useDarkMode();
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     const fetchTodos = async () => {
@@ -146,6 +148,19 @@ export const TodoRouter = () => {
     }
   };
 
+  const filteredTodos = todos.filter((item) => {
+    if (item?.title?.toLowerCase().includes(query.toLowerCase())) { // 제목
+      return true;
+    }
+    if (item?.desc?.toLowerCase().includes(query.toLowerCase())) { // 내용
+      return true;
+    }
+    if (item?.date?.toLowerCase().includes(query.toLowerCase())) { // 주제
+      return true;
+    }
+    return false;
+  });
+
   return (
     <div
       className={`flex flex-col items-center pt-16 min-h-screen ${
@@ -155,6 +170,8 @@ export const TodoRouter = () => {
       {/* 상단 탭 */}
       <Navbar isDarkMode={isDarkMode} />
       <DarkButton />
+      {/* 검색 탭 */}
+      <Searchbar isDarkMode={isDarkMode} value={query} onChange={setQuery} />
 
       {/* 달력 컴포넌트 */}
       <div
@@ -187,7 +204,7 @@ export const TodoRouter = () => {
             isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
           } w-full h-[500px]`}
           tileContent={({ date }) => {
-            const todosForDate = todos.filter(
+            const todosForDate = filteredTodos.filter(
               (todo) => todo.date === getFullDate(date)
             );
             return todosForDate.map((todo) => (
@@ -204,6 +221,46 @@ export const TodoRouter = () => {
             ));
           }}
         />
+      </div>
+      
+      {/* 선택된 날짜의 할 일 목록 */}
+      <div
+        className={`w-full max-w-4xl p-4 rounded-lg shadow-lg ${
+          isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
+        }`}
+      >
+        <h2 className="text-xl font-semibold mb-4">
+          할 일
+        </h2>
+        {filteredTodos.length > 0 ? (
+          <ul className="space-y-4">
+            {filteredTodos
+              // .filter((todo) => todo.date === getFullDate(selectedDate))
+              .map((todo) => (
+                <li
+                  key={todo.seq}
+                  className="p-4 border rounded-lg flex justify-between items-center hover:shadow-md"
+                >
+                  <div>
+                    <h3 className="font-bold">{todo.title}</h3>
+                    <p className="text-sm">{todo.desc}</p>
+                  </div>
+                  <button
+                    onClick={() => openModal(todo)}
+                    className={`px-3 py-1 rounded ${
+                      isDarkMode
+                        ? "bg-indigo-700 hover:bg-indigo-900 text-white"
+                        : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                    }`}
+                  >
+                    수정
+                  </button>
+                </li>
+              ))}
+          </ul>
+        ) : (
+          <p>할 일이 없습니다. 새로 추가해주세요.</p>
+        )}
       </div>
       <style>{`
         .react-calendar__tile {

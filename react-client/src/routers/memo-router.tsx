@@ -234,7 +234,6 @@ export const MemoRouter = () => {
         
         if (files) {
           for(let file of files) {
-            console.log(file);
             formData.append("files", file);
           }
         }
@@ -244,7 +243,6 @@ export const MemoRouter = () => {
       for (const [key, value] of Object.entries(newMemo)) {
         formData.append(key, value);
       }
-      console.log(formData);
   
       const response = await axios.post(`/memo/insert`
         , formData
@@ -363,6 +361,8 @@ export const MemoRouter = () => {
         <Navbar isDarkMode={isDarkMode} />
         {/* 다크 모드 버튼 */}
         <DarkButton />
+        {/* 검색 탭 */}
+        <Searchbar isDarkMode={isDarkMode} value={query} onChange={setQuery} />
         <div className="text-center py-4">로딩 중...</div>
       </div>
     );
