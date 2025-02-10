@@ -564,13 +564,10 @@ export const MemoRouter = () => {
                         </p>
                       )}
 
-                      <textarea
-                        readOnly
-                        className={`w-full mt-3 ${
-                          isDarkMode ? 
-                          "bg-gray-800 text-white placeholder-gray-500" : 
-                          "bg-gray-100 text-gray-800 placeholder-gray-500"
-                        } text-sm font-medium p-3 rounded-lg resize-none focus:outline-none`}
+                      <p
+                        className={`${
+                          isDarkMode ? "text-gray-300" : "text-gray-600"
+                        } mb-3 leading-relaxed`}
                       >
                         {memo.raw.length > 200 && !isExpanded
                           ? `${memo.raw.substring(0, 200)}...`
@@ -583,7 +580,7 @@ export const MemoRouter = () => {
                             {isExpanded ? "내용 접기" : "내용 더보기"}
                           </button>
                         )}
-                      </textarea>
+                      </p>
 
                       {memo.answer && (
                         <textarea
