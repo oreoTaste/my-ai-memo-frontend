@@ -43,18 +43,27 @@ export const MemoRouter = () => {
     raw: "",
     answer: "",
   }); // 수정 중인 메모 내용
-  const [memoHeights, setMemoHeights] = useState<Record<number, number>>({});
-  const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
+  const [memoHeights, setMemoHeights] = useState<Record<number, { raw: number; answer: number }>>({});
+  const textareaRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map());
   const [files, setFiles] = useState<File[] | null>(null);
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    const newMemoHeights: Record<number, number> = {};  // 타입을 명시적으로 설정
+    const newMemoHeights: Record<number, { raw: number; answer: number }> = {}; // 타입을 명시적으로 설정
+  
     memos.forEach((memo, index) => {
-      if (textareaRefs.current[index]) {
-        newMemoHeights[memo.seq] = textareaRefs.current[index]?.scrollHeight || 0;
-      }
+      const rawTextarea = textareaRefs.current.get(`raw_${index}`);
+      const answerTextarea = textareaRefs.current.get(`answer_${index}`);
+  
+      const rawHeight = rawTextarea?.scrollHeight || 0;
+      const answerHeight = answerTextarea?.scrollHeight || 0;
+  
+      newMemoHeights[memo.seq] = {
+        raw: rawHeight,
+        answer: answerHeight,
+      };
     });
+  
     setMemoHeights(newMemoHeights);
   }, [memos]);
   
@@ -159,17 +168,6 @@ export const MemoRouter = () => {
 
     fetchMemos();
   }, []);
-
-  const [expandedMemoIds, setExpandedMemoIds] = useState<Number[]>([]); // 확장된 메모의 ID 저장
-
-  const toggleExpanded = (seq: number) => {
-    setExpandedMemoIds(
-      (prev) =>
-        prev.includes(seq)
-          ? prev.filter((id) => id !== seq) // 이미 확장된 상태면 제거
-          : [...prev, seq] // 확장되지 않은 상태면 추가
-    );
-  };
 
   const addMemo = async () => {
     if (!title || !raw) {
@@ -450,7 +448,6 @@ export const MemoRouter = () => {
           <p className="text-lg text-gray-500">저장된 메모가 없습니다.</p>
         ) : (
           filteredMemos.map((memo, index) => {
-            const isExpanded = expandedMemoIds.includes(memo.seq); // 확장 여부 확인
             const isEditing = editMemoId === memo.seq; // 현재 메모가 수정 중인지 확인
           
             return (
@@ -551,7 +548,7 @@ export const MemoRouter = () => {
                           isDarkMode ? "text-white" : "text-gray-800"
                         } mb-3 text-xl font-semibold`}
                       >
-                        {memo.title}
+                        [{memo.title}]
                       </h4>
 
                       {memo.subject && (
@@ -564,34 +561,28 @@ export const MemoRouter = () => {
                         </p>
                       )}
 
-                      <p
-                        className={`${
-                          isDarkMode ? "text-gray-300" : "text-gray-600"
-                        } mb-3 leading-relaxed`}
-                      >
-                        {memo.raw.length > 200 && !isExpanded
-                          ? `${memo.raw.substring(0, 200)}...`
-                          : memo.raw}
-                        {memo.raw.length > 200 && (
-                          <button
-                            onClick={() => toggleExpanded(memo.seq)}
-                            className="text-sm text-blue-500 hover:underline ml-2"
-                          >
-                            {isExpanded ? "내용 접기" : "내용 더보기"}
-                          </button>
-                        )}
-                      </p>
+                      <textarea
+                        readOnly
+                        ref={(el) => el && textareaRefs.current.set(`raw_${index}`, el)}
+                        className={`w-full mt-3 ${
+                          isDarkMode
+                            ? "bg-gray-800 text-white placeholder-gray-500"
+                            : "bg-gray-100 text-gray-800 placeholder-gray-500"
+                        } text-sm font-medium p-3 rounded-lg resize-none focus:outline-none`}
+                        style={{ height: memoHeights[memo.seq]?.raw || "auto" }}
+                        value={`${memo.raw}`}
+                      />
 
                       {memo.answer && (
                         <textarea
                           readOnly
-                          ref={(el) => (textareaRefs.current[index] = el)}
+                          ref={(el) => el && textareaRefs.current.set(`answer_${index}`, el)}
                           className={`w-full mt-3 ${
                             isDarkMode
                               ? "bg-gray-800 text-white placeholder-gray-500"
                               : "bg-gray-100 text-gray-800 placeholder-gray-500"
                           } text-sm font-medium p-3 rounded-lg resize-none focus:outline-none`}
-                          style={{ height: memoHeights[memo.seq] || "auto" }}
+                          style={{ height: memoHeights[memo.seq]?.answer || "auto" }}
                           value={`조언 : ${memo.answer}`}
                         />
                       )}
