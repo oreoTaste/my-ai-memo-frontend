@@ -30,7 +30,7 @@
   "scripts": {
     "tailwind:build": "npx tailwindcss-cli@latest build -i src/styles/tailwind.css -o src/styles/styles.css",
     "start css": "npm run tailwind:build & react-scripts start",
-    "start": "HTTPS=true SSL_CRT_FILE=_wildcard.iptime.org.pem SSL_KEY_FILE=_wildcard.iptime.org-key.pem WATCHPACK_POLLING=true react-scripts start",
+    "start": "WATCHPACK_POLLING=true react-scripts start",
     "build": "npm run tailwind:build & react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
