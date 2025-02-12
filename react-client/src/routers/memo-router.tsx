@@ -4,6 +4,7 @@ import { useDarkMode } from "../DarkModeContext";
 import Navbar from "../components/Navbar";
 import DarkButton from "../components/DarkButton";
 import Searchbar from "../components/Searchbar";
+import { MemoItem } from "../components/MemoItem"; // MemoItem 컴포넌트 import
 
 interface UploadFile {
   fileName: string; // 파일 이름은 문자열입니다.
@@ -18,6 +19,7 @@ interface Memo {
   createdAt: string;
   modifiedAt: string;
   files: UploadFile[];
+  isSwiped: boolean;
 }
 
 export const MemoRouter = () => {
@@ -47,25 +49,41 @@ export const MemoRouter = () => {
   const textareaRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map());
   const [files, setFiles] = useState<File[] | null>(null);
   const [query, setQuery] = useState("");
+  const [isSwiped, setIsSwiped] = useState(false);
+  const [isScreenNarrow, setIsScreenNarrow] = useState(window.innerWidth <= 768); // 초기화 (768px 이하에서 스와이프 가능)
 
   useEffect(() => {
-    const newMemoHeights: Record<number, { raw: number; answer: number }> = {}; // 타입을 명시적으로 설정
-  
+    const newMemoHeights: Record<number, { raw: number; answer: number }> = {};
     memos.forEach((memo, index) => {
-      const rawTextarea = textareaRefs.current.get(`raw_${index}`);
-      const answerTextarea = textareaRefs.current.get(`answer_${index}`);
-  
-      const rawHeight = rawTextarea?.scrollHeight || 0;
-      const answerHeight = answerTextarea?.scrollHeight || 0;
-  
+      const rawTextarea = textareaRefs.current.get(`raw_${memo.seq}`);
+      const answerTextarea = textareaRefs.current.get(`answer_${memo.seq}`);
       newMemoHeights[memo.seq] = {
-        raw: rawHeight,
-        answer: answerHeight,
+        raw: rawTextarea?.scrollHeight || 0,
+        answer: answerTextarea?.scrollHeight || 0,
       };
     });
-  
     setMemoHeights(newMemoHeights);
-  }, [memos]);
+  }, [memos, editMemoContent]);
+  
+  // 화면 크기 감지
+  useEffect(() => {
+    const handleResize = () => {
+      const isNarrow = window.innerWidth <= 768;
+      setIsScreenNarrow(isNarrow);
+
+      // 넓은 화면일 경우 항상 스와이프 활성화
+      if (!isNarrow) {
+        setIsSwiped(true);
+      }
+    };
+
+    // 초기 실행 및 이벤트 리스너 등록
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   
   // 수정 시작
   const startEditing = (memo: {
@@ -83,6 +101,16 @@ export const MemoRouter = () => {
       answer: memo.answer,
     });
   };
+  // MemoRouter 내에서
+const handleUpdateEditMemoContent = (
+  newContent: Partial<{ title: string; subject?: string; raw: string; answer: string }>
+) => {
+  setEditMemoContent((prev) => ({
+    ...prev,
+    ...newContent,
+  }));
+};
+
 
   // 수정취소
   const cancelMemo = (memoId: number) => {
@@ -169,6 +197,17 @@ export const MemoRouter = () => {
     fetchMemos();
   }, []);
 
+  const [expandedMemoIds, setExpandedMemoIds] = useState<Number[]>([]); // 확장된 메모의 ID 저장
+
+  const toggleExpanded = (seq: number) => {
+    setExpandedMemoIds(
+      (prev) =>
+        prev.includes(seq)
+          ? prev.filter((id) => id !== seq) // 이미 확장된 상태면 제거
+          : [...prev, seq] // 확장되지 않은 상태면 추가
+    );
+  };
+
   const addMemo = async () => {
     if (!title || !raw) {
       alert("제목과 내용을 모두 입력해주세요.");
@@ -205,6 +244,7 @@ export const MemoRouter = () => {
       createdAt: "", // 사용x
       modifiedAt: "", // 사용x
       files: [],
+      isSwiped,
     };
 
     try {
@@ -448,233 +488,28 @@ export const MemoRouter = () => {
           <p className="text-lg text-gray-500">저장된 메모가 없습니다.</p>
         ) : (
           filteredMemos.map((memo, index) => {
-            const isEditing = editMemoId === memo.seq; // 현재 메모가 수정 중인지 확인
-          
+            const isEditing = editMemoId === memo.seq;
+            const isExpanded = expandedMemoIds.includes(memo.seq);
             return (
-              <div
-                key={memo.seq}
-                className={`${
-                  isDarkMode
-                    ? "bg-gray-800 text-white border-gray-600"
-                    : "bg-white text-gray-800 border-gray-300"
-                } p-4 rounded-lg shadow-lg mb-4 transition duration-300 flex items-center justify-between`}
-              >
-                <div className="flex-1 pr-4">
-                  {isEditing ? (
-                    <div>
-                      {/* 제목 */}
-                      <input
-                        type="text"
-                        value={editMemoContent.title}
-                        onChange={(e) => {
-                          setEditMemoContent((prev) => ({
-                            ...prev,
-                            title: e.target.value,
-                          }));
-                          e.target.style.height = "auto"; // 높이를 초기화
-                          e.target.style.height = `${e.target.scrollHeight}px`; // 내용에 맞게 높이 조정
-                        }}
-                        className={`${
-                          isDarkMode
-                            ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-600"
-                            : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
-                        } w-full p-2 border rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500`}
-                        placeholder="제목"
-                      />
-                      {/* 주제 */}
-                      <input
-                        type="text"
-                        value={editMemoContent.subject || ""}
-                        onChange={(e) => {
-                          setEditMemoContent((prev) => ({
-                            ...prev,
-                            subject: e.target.value,
-                          }));
-                          e.target.style.height = "auto"; // 높이를 초기화
-                          e.target.style.height = `${e.target.scrollHeight}px`; // 내용에 맞게 높이 조정
-                        }}
-                        className={`${
-                          isDarkMode
-                            ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-600"
-                            : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
-                        } w-full p-2 border rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500`}
-                        placeholder="주제"
-                      />
-                      {/* 내용 */}
-                      <textarea
-                        value={editMemoContent.raw}
-                        onChange={(e) => {
-                          setEditMemoContent((prev) => ({
-                            ...prev,
-                            raw: e.target.value,
-                          }));
-                          e.target.style.height = "auto"; // 높이를 초기화
-                          e.target.style.height = `${e.target.scrollHeight}px`; // 내용에 맞게 높이 조정
-                        }}
-                        className={`${
-                          isDarkMode
-                            ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-600"
-                            : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
-                        } w-full p-2 border rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500`}
-                        placeholder="내용"
-                      />
-                      {/* 응답 */}
-                      <textarea
-                        value={editMemoContent.answer || ""}
-                        onChange={(e) => {
-                          setEditMemoContent((prev) => ({
-                            ...prev,
-                            answer: e.target.value,
-                          }));
-                          e.target.style.height = "auto"; // 높이를 초기화
-                          e.target.style.height = `${e.target.scrollHeight}px`; // 내용에 맞게 높이 조정
-                        }}
-                        className={`${
-                          isDarkMode
-                            ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-600"
-                            : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
-                        } h-48 w-full p-2 border rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500`}
-                        placeholder="응답"
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      className={`p-6 rounded-lg shadow-md ${
-                        isDarkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"
-                      }`}
-                    >
-                      <h4
-                        className={`${
-                          isDarkMode ? "text-white" : "text-gray-800"
-                        } mb-3 text-xl font-semibold`}
-                      >
-                        [{memo.title}]
-                      </h4>
-
-                      {memo.subject && (
-                        <p
-                          className={`${
-                            isDarkMode ? "text-indigo-300" : "text-indigo-500"
-                          } text-sm mb-2 font-medium`}
-                        >
-                          주제: {memo.subject}
-                        </p>
-                      )}
-
-                      <textarea
-                        readOnly
-                        ref={(el) => el && textareaRefs.current.set(`raw_${index}`, el)}
-                        className={`w-full mt-3 ${
-                          isDarkMode
-                            ? "bg-gray-800 text-white placeholder-gray-500"
-                            : "bg-gray-100 text-gray-800 placeholder-gray-500"
-                        } text-sm font-medium p-3 rounded-lg resize-none focus:outline-none`}
-                        style={{ height: memoHeights[memo.seq]?.raw || "auto" }}
-                        value={`${memo.raw}`}
-                      />
-
-                      {memo.answer && (
-                        <textarea
-                          readOnly
-                          ref={(el) => el && textareaRefs.current.set(`answer_${index}`, el)}
-                          className={`w-full mt-3 ${
-                            isDarkMode
-                              ? "bg-gray-800 text-white placeholder-gray-500"
-                              : "bg-gray-100 text-gray-800 placeholder-gray-500"
-                          } text-sm font-medium p-3 rounded-lg resize-none focus:outline-none`}
-                          style={{ height: memoHeights[memo.seq]?.answer || "auto" }}
-                          value={`조언 : ${memo.answer}`}
-                        />
-                      )}
-
-                      {memo.files?.length > 0 && (
-                        <div className="mt-5">
-                          <h5
-                            className={`${
-                              isDarkMode ? "text-gray-300" : "text-gray-800"
-                            } text-sm font-semibold mb-2`}
-                          >
-                            첨부 파일
-                          </h5>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {memo.files.map(({ fileName }, index) => (
-                              fileName && (
-                                <button
-                                  key={index}
-                                  onClick={() => handleDownload(memo.seq, fileName)}
-                                  className="flex items-center justify-between px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
-                                >
-                                  <span className="truncate">{fileName}</span>
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="w-4 h-4 ml-2"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M4 16l8 8m0 0l8-8m-8 8V4"
-                                    />
-                                  </svg>
-                                </button>
-                              )
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="mt-4 text-xs">
-                        <p className="text-gray-400 dark:text-gray-500">
-                          등록일시 : {new Date(memo.createdAt).toLocaleString()}
-                        </p>
-                        <p className="text-gray-400 dark:text-gray-500">
-                          수정일시 : {new Date(memo.modifiedAt).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center">
-                  {isEditing ? (
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                      <button
-                        onClick={() => saveMemo(memo.seq)}
-                        className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition"
-                        aria-label="저장"
-                      >
-                        ✓
-                      </button>
-                      <button
-                        onClick={() => cancelMemo(memo.seq)}
-                        className="w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition"
-                        aria-label="취소"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                      <button
-                        onClick={() => startEditing(memo)}
-                        className="w-10 h-10 bg-yellow-500 text-white rounded-full flex items-center justify-center hover:bg-yellow-600 transition"
-                        aria-label="수정"
-                      >
-                        ✎
-                      </button>
-                      <button
-                        onClick={() => deleteMemo(memo.seq)}
-                        className="w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition"
-                        aria-label="삭제"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <MemoItem
+              key={memo.seq}
+              memo={memo}
+              isScreenNarrow={isScreenNarrow}
+              isDarkMode={isDarkMode}
+              isEditing={isEditing}
+              isExpanded={isExpanded}
+              memoHeights={memoHeights[memo.seq]}
+              index={index}
+              startEditing={startEditing}
+              cancelMemo={cancelMemo}
+              saveMemo={saveMemo}
+              deleteMemo={deleteMemo}
+              toggleExpanded={toggleExpanded}
+              textareaRefs={textareaRefs}
+              editMemoContent={isEditing ? editMemoContent : undefined}
+              updateEditMemoContent={isEditing ? handleUpdateEditMemoContent : undefined}
+              handleDownload={handleDownload}
+            />
             );
           })
         )}
