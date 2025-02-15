@@ -6,6 +6,7 @@ import { UsersRouter } from './routers/users-router';
 import { RecordRouter } from './routers/record-router';
 import { CodelistRouter } from './routers/codelist-router';
 import { TodoRouter } from './routers/todo-router';
+import { QueryRouter } from './routers/query-router';
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
         <Route path="/users" element={<UsersRouter />}/>
         <Route path="/register" element={<RegisterRouter />} />
         <Route path="/codes" element={<CodelistRouter />} />
+        <Route path="/queries" element={<QueryRouter />} />
       </Routes>
     </Router>
   );

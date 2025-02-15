@@ -23,6 +23,7 @@ const Navbar = ({ isDarkMode }: { isDarkMode: boolean }) => {
 
   if(storedUser?.adminYn === "Y") {
     tabs.push({ label: "공통코드", path: "/codes" });
+    tabs.push({ label: "쿼리", path: "/queries" });
   }
 
   return (
