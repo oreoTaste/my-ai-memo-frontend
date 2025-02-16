@@ -324,30 +324,31 @@ const handleUpdateEditMemoContent = (
 
   const handleDownload = async (memoSeq: number, fileName: string) => {
     try {
-      const response = await axios.get(`/file/download`, {
-        params: { fileFrom: 'MEMO', seq: memoSeq, fileName }, // 해당 파라미터로 요청
-        responseType: 'blob',  // 파일 다운로드를 위해 blob으로 설정
-        headers: {
-          'Cache-Control': 'no-cache', // 캐시를 사용하지 않도록 설정
-          'If-Modified-Since': '0', // If-Modified-Since 무력화
-          'If-None-Match': '', // If-None-Match 무력화
-          Accept: 'application/octet-stream', // 명시적으로 blob 타입 요청
-        },
-        withCredentials: true,  // 쿠키가 필요한 경우
-      });
+      if(window.confirm(`다운로드 받으시겠습니까? (${fileName})`)) {
+        const response = await axios.get(`/file/download`, {
+          params: { fileFrom: 'MEMO', seq: memoSeq, fileName }, // 해당 파라미터로 요청
+          responseType: 'blob',  // 파일 다운로드를 위해 blob으로 설정
+          headers: {
+            'Cache-Control': 'no-cache', // 캐시를 사용하지 않도록 설정
+            'If-Modified-Since': '0', // If-Modified-Since 무력화
+            'If-None-Match': '', // If-None-Match 무력화
+            Accept: 'application/octet-stream', // 명시적으로 blob 타입 요청
+          },
+          withCredentials: true,  // 쿠키가 필요한 경우
+        });
+    
+        // 다운로드할 파일 생성
+        const blob = new Blob([response.data], { type: 'application/octet-stream' });
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
   
-      // 다운로드할 파일 생성
-      const blob = new Blob([response.data], { type: 'application/octet-stream' });
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-
-      link.setAttribute('download', fileName);  // 다운로드 시 파일명 설정
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);  // 다운로드 후 링크 삭제
-      URL.revokeObjectURL(downloadUrl); // 메모리 정리
-
+        link.setAttribute('download', fileName);  // 다운로드 시 파일명 설정
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);  // 다운로드 후 링크 삭제
+        URL.revokeObjectURL(downloadUrl); // 메모리 정리  
+      }
     } catch (error) {
       console.error('Download error:', error);
     }

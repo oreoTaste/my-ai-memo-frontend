@@ -10,6 +10,7 @@ export interface Memo {
   createdAt: string;
   modifiedAt: string;
   files?: { fileName: string }[];
+  insertId: string;
 }
 
 interface MemoItemProps {
@@ -203,15 +204,29 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                 >
                   첨부 파일
                 </h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {memo.files.map(({ fileName }, idx) =>
-                    fileName ? (
+                {/* 이미지 영역 */}
+                <div className="flex flex-wrap gap-4 mb-4">
+                  {memo.files
+                    .filter(({ fileName }) => /\.(jpg|jpeg|png)$/i.test(fileName))
+                    .map(({ fileName }, idx) => (
+                      <img
+                        key={idx}
+                        onClick={() => handleDownload(memo.seq, fileName)}
+                        className="max-h-36 max-w-36 cursor-pointer rounded-lg border border-gray-300 hover:shadow-lg"
+                        src={`/uploads/${memo.insertId}_${memo.seq}_${fileName}`}
+                        alt={fileName}
+                      />
+                    ))}
+                </div>
+                {/* 버튼 영역 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {memo.files
+                    .filter(({ fileName }) => !/\.(jpg|jpeg|png)$/i.test(fileName))
+                    .map(({ fileName }, idx) => (
                       <button
                         key={idx}
-                        onClick={() => {
-                          handleDownload(memo.seq, fileName);
-                        }}
-                        className="flex items-center justify-between px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
+                        onClick={() => handleDownload(memo.seq, fileName)}
+                        className="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
                       >
                         <span className="truncate">{fileName}</span>
                         <svg
@@ -229,8 +244,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                           />
                         </svg>
                       </button>
-                    ) : null
-                  )}
+                    ))}
                 </div>
               </div>
             )}
