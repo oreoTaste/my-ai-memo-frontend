@@ -75,7 +75,7 @@ export const QueryRouter = () => {
               isDarkMode
                 ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-600"
                 : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
-            } w-full p-2 h-64 border rounded resize-none placeholder-gray-500`}
+            } w-full p-2 h-64 border rounded resize-none placeholder-gray-500 font-mono`}
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
           />
@@ -85,7 +85,7 @@ export const QueryRouter = () => {
               isDarkMode
                 ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-600"
                 : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
-            } w-full p-2 h-16 border rounded resize-none placeholder-gray-500`}
+            } w-full p-2 h-16 border rounded resize-none placeholder-gray-500 font-mono`}
             value={inputParams}
             onChange={(e) => setInputParams(e.target.value)}
           />
@@ -114,7 +114,7 @@ export const QueryRouter = () => {
               isDarkMode
                 ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-600"
                 : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
-            } mt-4 w-full p-2 h-64 border rounded resize-none placeholder-gray-500`}
+            } mt-4 w-full p-2 h-64 border rounded resize-none placeholder-gray-500 font-mono`}
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
           />
