@@ -70,7 +70,9 @@ export const CodelistRouter = () => {
   useEffect(() => {
     const fetchCommonCodeGroups = async () => {
       try {
-        let response = await axios.get("/code/codegroup-list");
+        let response = await axios.get("/code/codegroup-list"
+          , {headers: { "X-API-Request": "true" }}
+        );
 
 
         if(!response.data.result && response.data.statusCode === 400) {
@@ -103,6 +105,7 @@ export const CodelistRouter = () => {
         try {
           const response = await axios.get(
             `/code/code-list?codeGroup=${selectedGroup.codeGroup}`
+            , {headers: { "X-API-Request": "true" }}
           );
           setSelectedGroup((prev) => ({
             ...prev,
@@ -125,7 +128,9 @@ export const CodelistRouter = () => {
 
   const handleSaveGroup = async () => {
     try {
-      let rslt = await axios.post("/code/codegroup-insert", newGroup);
+      let rslt = await axios.post("/code/codegroup-insert", newGroup
+        , {headers: { "X-API-Request": "true" }}
+      );
       if (rslt.data.result) {
         alert("성공");
       }
@@ -133,7 +138,9 @@ export const CodelistRouter = () => {
       setIsModalOpen(false);
 
       // 그룹 목록 다시 로드
-      const response = await axios.get("/code/codegroup-list");
+      const response = await axios.get("/code/codegroup-list"
+        , {headers: { "X-API-Request": "true" }}
+      );
       if (response.data.result) {
         let rslt = response.data.codegroups || [];
         rslt.sort((a: CommonCodeGroup, b: CommonCodeGroup) =>
@@ -157,7 +164,9 @@ export const CodelistRouter = () => {
     try {
       if (selectedGroup) {
         let inputCode = { codeGroup: selectedGroup.codeGroup, ...newCode };
-        let rslt = await axios.post(`/code/code-insert`, inputCode);
+        let rslt = await axios.post(`/code/code-insert`, inputCode
+          , {headers: { "X-API-Request": "true" }}
+        );
         if (rslt.data?.result) {
           alert("성공");
         }
@@ -194,9 +203,11 @@ export const CodelistRouter = () => {
 
       if (selectedGroup && window.confirm(askComment)) {
         const response = await axios.post(deleteApi, {
-          codeGroup: selectedGroup.codeGroup,
-          code,
-        });
+            codeGroup: selectedGroup.codeGroup,
+            code,
+          }
+          , {headers: { "X-API-Request": "true" }}
+        );
 
         if (response.data?.result) {
           alert(successMessage);

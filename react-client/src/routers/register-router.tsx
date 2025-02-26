@@ -19,7 +19,7 @@ export const RegisterRouter = () => {
     try {
       const response = await axios.post(url
             , { loginId, name, password }
-            , { withCredentials: true }
+            , { withCredentials: true, headers: { "X-API-Request": "true" } }
         );
 
       if (response.data.result) {

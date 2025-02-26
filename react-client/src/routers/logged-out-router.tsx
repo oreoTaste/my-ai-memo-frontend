@@ -21,7 +21,7 @@ export const LoggedOutRouter = () => {
     try {
       const response = await axios.post(url
         , {loginId, password}
-        , {withCredentials: true /* 쿠키를 포함시켜 요청을 보냄 */}
+        , {withCredentials: true /* 쿠키를 포함시켜 요청을 보냄 */, headers: { "X-API-Request": "true" }}
       );
 
       // 로그인 성공 시 로그인된 화면으로 이동

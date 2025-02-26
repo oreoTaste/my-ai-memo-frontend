@@ -33,7 +33,7 @@ export const QueryRouter = () => {
     let response = await axios.post(
       `/query/execute`,
       { query: newInputQuery,  params},
-      { withCredentials: true }
+      { withCredentials: true, headers: { "X-API-Request": "true" }}
     );
     if (response?.data?.result) {
       console.log(response?.data?.queryResult);
@@ -43,7 +43,7 @@ export const QueryRouter = () => {
     response = await axios.post(
       `/query/execute`,
       { query: "SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(NULL, NULL, 'ALLSTATS LAST'))",  params: []},
-      { withCredentials: true }
+      { withCredentials: true, headers: { "X-API-Request": "true" }}
     );
     if (response?.data?.result) {
       console.log("실행계획");

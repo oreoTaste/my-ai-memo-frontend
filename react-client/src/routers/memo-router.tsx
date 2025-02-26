@@ -139,7 +139,7 @@ const handleUpdateEditMemoContent = (
         let response = await axios.post(
           `/memo/update`,
           { ...editMemoContent, seq: editMemoId },
-          { withCredentials: true }
+          { withCredentials: true, headers: { "X-API-Request": "true" }}
         );
         if (response.data.result) {
           // 로컬 상태 업데이트
@@ -172,7 +172,7 @@ const handleUpdateEditMemoContent = (
       setIsLoading(true);
       try {
         const response = await axios.get(`/memo/list`, {
-          withCredentials: true,
+          withCredentials: true, headers: { "X-API-Request": "true" }
         });
 
         if (response.data.result) {
@@ -224,7 +224,7 @@ const handleUpdateEditMemoContent = (
             text: `다음의 글에서 주제를 찾고 답변할 게 있다면 답변도 해줘. 이때 답변은 항상 @_@를 기준으로 두 부분으로 나뉘어야 해. @_@ 앞에는 주제나 질문 요약을 쓰고, 뒤에는 그에 대한 조언을 쓰는 거야. 그리고 @_@는 한 번만 써야 해. 간단하지?
                   "${raw}"`
           }),
-          { headers: { "Content-Type": "application/json" } }
+          { headers: { "Content-Type": "application/json", "X-API-Request": "true" } }
         );
         let aiAnswers = result.data?.candidates?.[0]?.content?.parts?.[0]?.text
           .split("@_@")
@@ -267,7 +267,7 @@ const handleUpdateEditMemoContent = (
       const response = await axios.post(`/memo/insert`
         , formData
         , { withCredentials: true
-          , headers: { "content-type": "multipart/form-data" }
+          , headers: { "content-type": "multipart/form-data", "X-API-Request": "true" }
           , maxContentLength: 1024 ** 3 // 1GB로 설정
           , maxBodyLength: 1024 ** 3 // 1GB로 설정
       });
@@ -300,7 +300,7 @@ const handleUpdateEditMemoContent = (
       const askComment = `[${foundMemo.title}]를 삭제하시겠습니까?`;
       if (window.confirm(askComment)) {
         const response = await axios.delete(`/memo/delete?seq=${seq}`, {
-          withCredentials: true,
+          withCredentials: true, headers: { "X-API-Request": "true"}
         });
 
         if (response.data.result) {
@@ -333,6 +333,7 @@ const handleUpdateEditMemoContent = (
             'If-Modified-Since': '0', // If-Modified-Since 무력화
             'If-None-Match': '', // If-None-Match 무력화
             Accept: 'application/octet-stream', // 명시적으로 blob 타입 요청
+            "X-API-Request": "true"
           },
           withCredentials: true,  // 쿠키가 필요한 경우
         });

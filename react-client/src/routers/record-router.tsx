@@ -188,15 +188,17 @@ export const RecordRouter = () => {
           recordResponse,
         ] = await Promise.all([
           axios.get(`/code/code-list?codeGroup=CC001`, {
-            withCredentials: true,
+            withCredentials: true, headers: { "X-API-Request": "true" }
           }),
           axios.get(`/code/code-list?codeGroup=CC002`, {
-            withCredentials: true,
+            withCredentials: true, headers: { "X-API-Request": "true" }
           }),
           axios.get(`/code/code-list?codeGroup=CC003`, {
-            withCredentials: true,
+            withCredentials: true, headers: { "X-API-Request": "true" }
           }),
-          axios.get("/record/list", { withCredentials: true }),
+          axios.get("/record/list", { 
+            withCredentials: true, headers: { "X-API-Request": "true" }
+          }),
         ]);
 
         let records: Record[] = [];
@@ -263,7 +265,7 @@ export const RecordRouter = () => {
     try {
       let inputRecord = { ...newRecord, createdAt: new Date() };
       const response = await axios.post("/record/insert", inputRecord, {
-        withCredentials: true,
+        withCredentials: true, headers: { "X-API-Request": "true" }
       });
 
       if (response.data.result) {

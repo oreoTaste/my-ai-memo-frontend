@@ -23,7 +23,7 @@ export const UsersRouter = () => {
       setIsLoading(true);
       try {
         const response = await axios.get(`/user/list`, {
-          withCredentials: true,
+          withCredentials: true, headers: { "X-API-Request": "true" }
         });
 
         if (response.data.result) {

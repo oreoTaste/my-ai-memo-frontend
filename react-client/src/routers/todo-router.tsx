@@ -39,7 +39,7 @@ export const TodoRouter = () => {
 
         const response = await axios.get(
           `/todo/list?dateStart=${searchStart}&dateEnd=${searchEnd}`,
-          { withCredentials: true }
+          { withCredentials: true, headers: { "X-API-Request": "true" } }
         );
 
         if (response.data.result) {
@@ -102,7 +102,9 @@ export const TodoRouter = () => {
 
     try {
       const endpoint = todoData.seq > 0 ? "/todo/update" : "/todo/insert"; // 수정인지 추가인지 결정
-      const response = await axios.post(endpoint, todoData, { withCredentials: true });
+      const response = await axios.post(endpoint, todoData
+        , { withCredentials: true, headers: { "X-API-Request": "true" }}
+      );
 
       if (response.data.result) {
         setTodos((prev) => {
@@ -133,7 +135,7 @@ export const TodoRouter = () => {
       const response = await axios.post(
         `/todo/delete`,
         { seq },
-        { withCredentials: true }
+        { withCredentials: true, headers: { "X-API-Request": "true" } }
       );
       if (response.data.result) {
         setTodos((prev) => prev.filter((todo) => todo.seq !== seq));
