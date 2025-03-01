@@ -64,8 +64,10 @@ app.use(cors({
 //   next();
 // });
 
-app.use(express.json({ limit: "1024mb" })); // JSON 요청 처리
-app.use(express.urlencoded({ extended: true, limit: "1024mb" })); // URL-encoded 데이터 처리
+try {
+  app.use(express.json({ limit: "1024mb" })); // JSON 요청 처리
+  app.use(express.urlencoded({ extended: true, limit: "1024mb" })); // URL-encoded 데이터 처리  
+} catch (e) {}
 
 const apiGeminiProxy = async (req, res) => {
   const targetUrl = `${process.env.REACT_APP_AI_URL}${process.env.REACT_APP_AI_KEY}`;

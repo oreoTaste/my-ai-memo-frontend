@@ -208,6 +208,21 @@ const handleUpdateEditMemoContent = (
     );
   };
 
+  // 분석 API 호출 함수
+  const handleAnalyze = (memoSeq: number) => {
+    try {
+      if (!window.confirm("해당 메모의 사진을 분석하시겠습니까?")) {
+        return;
+      }
+
+      axios.post(`/memo/analyze?seq=${memoSeq}`,
+        JSON.stringify({ seq: memoSeq }), // 메모 seq 전달 
+        { withCredentials: true, headers: { "Content-Type": "application/json", "X-API-Request": "true"}}
+      );
+
+    } catch (error) {}
+  };
+
   const addMemo = async () => {
     if (!title || !raw) {
       alert("제목과 내용을 모두 입력해주세요.");
@@ -218,19 +233,46 @@ const handleUpdateEditMemoContent = (
 
     if(askAI) {
       try {
-        const result = await axios.post(
-          "/api/gemini",
-          JSON.stringify({
-            text: `다음의 글에서 주제를 찾고 답변할 게 있다면 답변도 해줘. 이때 답변은 항상 @_@를 기준으로 두 부분으로 나뉘어야 해. @_@ 앞에는 주제나 질문 요약을 쓰고, 뒤에는 그에 대한 조언을 쓰는 거야. 그리고 @_@는 한 번만 써야 해. 간단하지?
-                  "${raw}"`
-          }),
-          { headers: { "Content-Type": "application/json", "X-API-Request": "true" } }
-        );
-        let aiAnswers = result.data?.candidates?.[0]?.content?.parts?.[0]?.text
-          .split("@_@")
-          .map((el: string) => el.trim());
-        subject = String(aiAnswers[0]).replaceAll(/^(주제|요약|응답|조언)\s?:\s?/g,"");
-        answer = aiAnswers[1];
+        // AI 요청
+        let formData = new FormData();
+        const newMemo: Memo = {
+          raw,
+          title,
+          subject,
+          answer,
+          seq: 0, // 사용x
+          insertId: "", // 사용x
+          createdAt: "", // 사용x
+          modifiedAt: "", // 사용x
+          files: [],
+          isSwiped,
+        };
+    
+        if(files) {
+          for(let file of files) {
+            formData.append("files", file);
+          }
+          // 파일 입력 초기화
+          if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // 파일 입력 필드 리셋
+          }
+          setFiles(null);
+        }
+        // 추가로 req.body의 키/값을 FormData에 추가
+        for (const [key, value] of Object.entries(newMemo)) {
+          formData.append(key, value);
+        }
+    
+        const aiAnswers = (await axios.post(`/memo/get-advice`
+          , formData
+          , { withCredentials: true
+            , headers: { "content-type": "multipart/form-data", "X-API-Request": "true" }
+            , maxContentLength: 1024 ** 3 // 1GB로 설정
+            , maxBodyLength: 1024 ** 3 // 1GB로 설정
+        })).data;
+
+        subject = aiAnswers.subject;
+        answer = aiAnswers.advice;
       } catch (error) {}  
     }
 
@@ -511,6 +553,7 @@ const handleUpdateEditMemoContent = (
               editMemoContent={isEditing ? editMemoContent : undefined}
               updateEditMemoContent={isEditing ? handleUpdateEditMemoContent : undefined}
               handleDownload={handleDownload}
+              handleAnalyze={handleAnalyze}
             />
             );
           })

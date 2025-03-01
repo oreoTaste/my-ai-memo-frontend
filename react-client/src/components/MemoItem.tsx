@@ -39,6 +39,7 @@ interface MemoItemProps {
     newContent: Partial<{ title: string; subject?: string; raw: string; answer: string }>
   ) => void;
   handleDownload: (memoSeq: number, fileName: string) => void;
+  handleAnalyze: (memoSeq: number) => void;
 }
 
 export const MemoItem: React.FC<MemoItemProps> = ({
@@ -57,7 +58,8 @@ export const MemoItem: React.FC<MemoItemProps> = ({
   editMemoContent,
   updateEditMemoContent,
   isScreenNarrow,
-  handleDownload
+  handleDownload,
+  handleAnalyze
 }) => {
   const [isSwiped, setIsSwiped] = useState(false);
 
@@ -70,6 +72,11 @@ export const MemoItem: React.FC<MemoItemProps> = ({
     trackMouse: true,
     delta: 50,
   });
+
+  // 사진 파일이 있는지 확인하는 헬퍼 함수
+  const hasImageFiles = (): boolean => {
+    return !!memo.files && memo.files.some(({ fileName }) => /\.(jpeg|jpg|png|jfif|gif|webp)$/i.test(fileName));
+  };
 
   return (
     <div
@@ -207,7 +214,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                 {/* 이미지 영역 */}
                 <div className="flex flex-wrap gap-4 mb-4">
                   {memo.files
-                    .filter(({ fileName }) => /\.(jpg|jpeg|png)$/i.test(fileName))
+                    .filter(({ fileName }) => /\.(jpeg|jpg|png|jfif|gif|webp)$/i.test(fileName))
                     .map(({ fileName }, idx) => (
                       <img
                         key={idx}
@@ -221,7 +228,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                 {/* 버튼 영역 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {memo.files
-                    .filter(({ fileName }) => !/\.(jpg|jpeg|png)$/i.test(fileName))
+                    .filter(({ fileName }) => !/\.(jpeg|jpg|png|jfif|gif|webp)$/i.test(fileName))
                     .map(({ fileName }, idx) => (
                       <button
                         key={idx}
@@ -260,8 +267,8 @@ export const MemoItem: React.FC<MemoItemProps> = ({
         )}
       </div>
 
-      {/* 스와이프된 경우 수정/삭제 버튼 표시 */}
-      {(!isScreenNarrow ||  isSwiped) && (
+      {/* 스와이프된 경우 수정/삭제/분석 버튼 표시 */}
+      {(!isScreenNarrow || isSwiped) && (
         <div className="relative top-0 right-0 h-full flex flex-col items-center justify-center space-y-4 p-2">
           {isEditing ? (
             <>
@@ -296,6 +303,15 @@ export const MemoItem: React.FC<MemoItemProps> = ({
               >
                 ✕
               </button>
+              {hasImageFiles() && (
+                <button
+                  onClick={() => handleAnalyze(memo.seq)}
+                  className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition"
+                  aria-label="분석"
+                >
+                  🔍
+                </button>
+              )}
             </>
           )}
         </div>
