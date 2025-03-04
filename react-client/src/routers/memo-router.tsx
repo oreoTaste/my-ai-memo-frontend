@@ -252,11 +252,6 @@ const handleUpdateEditMemoContent = (
           for(let file of files) {
             formData.append("files", file);
           }
-          // 파일 입력 초기화
-          if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // 파일 입력 필드 리셋
-          }
-          setFiles(null);
         }
         // 추가로 req.body의 키/값을 FormData에 추가
         for (const [key, value] of Object.entries(newMemo)) {
@@ -316,6 +311,7 @@ const handleUpdateEditMemoContent = (
 
       if (response.data.result) {
         newMemo.seq = response.data?.insertResult?.seq;
+        newMemo.insertId = String(response.data?.insertId);
         newMemo.createdAt = response.data?.insertResult?.createdAt;
         newMemo.modifiedAt = response.data?.insertResult?.modifiedAt;
         for(let file of files || []) {
