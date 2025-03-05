@@ -218,12 +218,12 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                     .map(({ fileName }, idx) => (
                       <img
                         key={idx}
-                        onClick={() => handleDownload(memo.seq, fileName)}
+                        onClick={() => window.open(`/uploads/${memo.insertId}_${memo.seq}_${fileName}`, '_blank')}
                         className="max-h-36 max-w-36 cursor-pointer rounded-lg border border-gray-300 hover:shadow-lg"
                         src={`/uploads/${memo.insertId}_${memo.seq}_${fileName}`}
                         alt={fileName}
                       />
-                    ))}
+                  ))}
                 </div>
                 {/* 버튼 영역 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
