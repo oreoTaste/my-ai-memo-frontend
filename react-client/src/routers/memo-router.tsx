@@ -20,6 +20,7 @@ interface Memo {
   modifiedAt: string;
   files: UploadFile[];
   isSwiped: boolean;
+  fileId: string;
 }
 
 export const MemoRouter = () => {
@@ -246,6 +247,7 @@ const handleUpdateEditMemoContent = (
           modifiedAt: "", // 사용x
           files: [],
           isSwiped,
+          fileId: ""
         };
     
         if(files) {
@@ -282,6 +284,7 @@ const handleUpdateEditMemoContent = (
       modifiedAt: "", // 사용x
       files: [],
       isSwiped,
+      fileId: ""
     };
 
     try {
@@ -364,7 +367,7 @@ const handleUpdateEditMemoContent = (
     try {
       if(window.confirm(`다운로드 받으시겠습니까? (${fileName})`)) {
         const response = await axios.get(`/file/download`, {
-          params: { fileFrom: 'MEMO', seq: memoSeq, fileName }, // 해당 파라미터로 요청
+          params: { fileFrom: 'MEMO', seq: memoSeq }, // 해당 파라미터로 요청
           responseType: 'blob',  // 파일 다운로드를 위해 blob으로 설정
           headers: {
             'Cache-Control': 'no-cache', // 캐시를 사용하지 않도록 설정
