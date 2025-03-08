@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useDarkMode } from "../DarkModeContext";
+import { useDarkMode } from "../contexts/DarkModeContext";
 import Navbar from "../components/Navbar";
 import DarkButton from "../components/DarkButton";
 

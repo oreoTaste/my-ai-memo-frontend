@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm, FieldValues, FieldError } from 'react-hook-form';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useDarkMode } from '../DarkModeContext';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 
 export const RegisterRouter = () => {

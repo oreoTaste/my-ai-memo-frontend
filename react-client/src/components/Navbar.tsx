@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useUser } from "./UserProvider";
+import { useUser } from "../contexts/UserContext";
 
 const Navbar = ({ isDarkMode }: { isDarkMode: boolean }) => {
   const navigate = useNavigate();

@@ -7,20 +7,22 @@ import { RecordRouter } from './routers/record-router';
 import { CodelistRouter } from './routers/codelist-router';
 import { TodoRouter } from './routers/todo-router';
 import { QueryRouter } from './routers/query-router';
-import { UserProvider } from './components/UserProvider';
-import { DarkModeProvider } from './DarkModeContext';
+import { UserProvider } from './contexts/UserContext';
+import { DarkModeProvider } from './contexts/DarkModeContext';
+import NotFound from './components/NotFound';
 
 const ProtectedRoutes = () => {
   return (
     <Routes>
         {/* 로그인 화면이 /user/login 경로로 매핑됨 */}
-        <Route path="/user/memos" element={<MemoRouter/>}/>
+        <Route path="/user/memos" element={<MemoRouter />}/>
         <Route path="/user/todos" element={<TodoRouter />} />
         <Route path="/user/records" element={<RecordRouter />} />
         <Route path="/users" element={<UsersRouter />}/>
         <Route path="/register" element={<RegisterRouter />} />
         <Route path="/codes" element={<CodelistRouter />} />
         <Route path="/queries" element={<QueryRouter />} />
+        <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm, FieldValues, FieldError } from 'react-hook-form';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';  // useNavigate 훅을 추가
-import { useDarkMode } from '../DarkModeContext';
+import { useDarkMode } from '../contexts/DarkModeContext';
 import  secureLocalStorage  from  "react-secure-storage";
 import DarkButton from '../components/DarkButton';
 

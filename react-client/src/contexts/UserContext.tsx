@@ -64,8 +64,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       }
     }, 5 * 60 * 1000); // 5분마다 체크
 
-    return () => clearInterval(interval); // 정리
-  }, [navigate]); // navigate만 의존성으로 사용
+    return () => clearInterval(interval); // eslint-disable-next-line
+  }, [navigate]); // navigate만 의존성으로 사용 
 
   return (
     <UserContext.Provider value={{ user, isLoading }}>

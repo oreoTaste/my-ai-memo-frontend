@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { useDarkMode } from "../DarkModeContext";
+import { useDarkMode } from "../contexts/DarkModeContext";
 import Navbar from "../components/Navbar";
 import DarkButton from "../components/DarkButton";
 
@@ -87,8 +87,6 @@ export const QueryRouter = () => {
             value={inputParams}
             onChange={(e) => setInputParams(e.target.value)}
           />
-          {/* <input type="file" multiple ref={fileInputRef} onChange={handleFileChange} /> */}
-          {/* {file && <p>선택한 파일: {file.name}</p>} */}
           <div
             className={`flex items-center justify-between mt-4 ${
               isDarkMode ? "text-gray-300" : "text-gray-700"
