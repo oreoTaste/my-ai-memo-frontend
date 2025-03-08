@@ -1,18 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import  secureLocalStorage  from  "react-secure-storage";
-
-type User = {
-    adminYn: string;
-};
+import { useUser } from "./UserProvider";
 
 const Navbar = ({ isDarkMode }: { isDarkMode: boolean }) => {
   const navigate = useNavigate();
-  const storedUser = JSON.parse(String(secureLocalStorage.getItem("user"))) as User;
-  
-  if (!storedUser) {
-    alert("로그인이 필요합니다.");
-    navigate('/');  // 로그인 성공 후 리디렉션 할 경로 설정
-  }
+  const { user: storedUser, isLoading } = useUser();
 
   const tabs = [
     { label: "메모", path: "/user/memos" },
@@ -21,7 +12,7 @@ const Navbar = ({ isDarkMode }: { isDarkMode: boolean }) => {
     { label: "사용자", path: "/users" },
   ];
 
-  if(storedUser?.adminYn === "Y") {
+  if(!isLoading && storedUser?.adminYn === "Y") {
     tabs.push({ label: "공통코드", path: "/codes" });
     tabs.push({ label: "쿼리", path: "/queries" });
   }

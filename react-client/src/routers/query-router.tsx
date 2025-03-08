@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { useDarkMode } from "../DarkModeContext";
-import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import DarkButton from "../components/DarkButton";
 
 export const QueryRouter = () => {
   const { isDarkMode } = useDarkMode();
-  const navigate = useNavigate();
   const [inputQuery, setInputQuery] = useState("");
   const [answer, setAnswer] = useState("");
   const [inputParams, setInputParams] = useState("");
@@ -22,7 +20,7 @@ export const QueryRouter = () => {
     }
 
     const newInputQuery = inputQuery.replace("SELECT ", "SELECT /*+ GATHER_PLAN_STATISTICS */ ");
-    const queryParamLength = newInputQuery.match(/\:\d{1,}/g)?.length || 0;
+    const queryParamLength = newInputQuery.match(/:\d{1,}/g)?.length || 0;
     const params = [...JSON.parse(`[${inputParams}]`)];
 
     if(queryParamLength !== params.length) {
