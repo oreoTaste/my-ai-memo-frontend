@@ -73,11 +73,14 @@ export const MemoItem: React.FC<MemoItemProps> = ({
     delta: 50,
   });
 
-  // 사진 파일이 있는지 확인하는 헬퍼 함수
-  const hasImageFiles = (): boolean => {
-    return !!memo.files && memo.files.some(({ fileName }) => /\.(jpeg|jpg|png|jfif|gif|webp)$/i.test(fileName));
-  };
+  let imageRegExp = new RegExp(/\.(jpeg|jpg|png|jfif|gif|webp)$/i);
+  let analyzableRegExp = new RegExp(/\.(jpeg|jpg|png|jfif|gif|webp|pdf)$/i);
 
+  // 분석 가능한 파일인지 확인하는 헬퍼 함수
+  const isAnalyzableFile = (): boolean => {
+    return !!memo.files && memo.files.some(({ fileName }) => analyzableRegExp.test(fileName));
+  };
+  
   return (
     <div
       {...swipeHandlers}
@@ -214,7 +217,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                 {/* 이미지 영역 */}
                 <div className="flex flex-wrap gap-4 mb-4">
                   {memo.files
-                    .filter(({ fileName }) => /\.(jpeg|jpg|png|jfif|gif|webp)$/i.test(fileName))
+                    .filter(({ fileName }) => imageRegExp.test(fileName))
                     .map(({ fileName }, idx) => (
                       <img
                         key={idx}
@@ -228,7 +231,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                 {/* 버튼 영역 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {memo.files
-                    .filter(({ fileName }) => !/\.(jpeg|jpg|png|jfif|gif|webp)$/i.test(fileName))
+                    .filter(({ fileName }) => !imageRegExp.test(fileName))
                     .map(({ fileName }, idx) => (
                       <button
                         key={idx}
@@ -303,13 +306,13 @@ export const MemoItem: React.FC<MemoItemProps> = ({
               >
                 ✕
               </button>
-              {hasImageFiles() && (
+              {isAnalyzableFile() && (
                 <button
                   onClick={() => handleAnalyze(memo.seq)}
                   className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition"
                   aria-label="분석"
                 >
-                  🔍
+                  📑
                 </button>
               )}
             </>

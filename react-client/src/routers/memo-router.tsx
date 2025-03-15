@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useDarkMode } from "../contexts/DarkModeContext";
@@ -212,7 +213,7 @@ const handleUpdateEditMemoContent = (
   // 분석 API 호출 함수
   const handleAnalyze = (memoSeq: number) => {
     try {
-      if (!window.confirm("해당 메모의 사진을 분석하시겠습니까?")) {
+      if (!window.confirm("해당 메모의 파일을 분석하시겠습니까?\n분석된 파일은 엑셀파일로 생성됩니다.\n(파일명: output.xlsx)")) {
         return;
       }
 
@@ -310,13 +311,14 @@ const handleUpdateEditMemoContent = (
           , headers: { "content-type": "multipart/form-data", "X-API-Request": "true" }
           , maxContentLength: 1024 ** 3 // 1GB로 설정
           , maxBodyLength: 1024 ** 3 // 1GB로 설정
-      });
+          });
 
       if (response.data.result) {
-        newMemo.seq = response.data?.insertResult?.seq;
-        newMemo.insertId = String(response.data?.insertId);
-        newMemo.createdAt = response.data?.insertResult?.createdAt;
-        newMemo.modifiedAt = response.data?.insertResult?.modifiedAt;
+        newMemo.seq = response.data?.memo?.seq;
+        newMemo.insertId = String(response.data?.memo?.insertId);
+        newMemo.createdAt = response.data?.memo?.createdAt;
+        newMemo.modifiedAt = response.data?.memo?.modifiedAt;
+
         for(let file of files || []) {
           newMemo.files.push({fileName: file.name})
         }
