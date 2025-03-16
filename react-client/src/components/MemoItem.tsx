@@ -9,7 +9,7 @@ export interface Memo {
   answer: string;
   createdAt: string;
   modifiedAt: string;
-  files?: { fileName: string }[];
+  files?: { fileName: string, googleDriveFileId: string }[];
   insertId: string;
 }
 
@@ -38,7 +38,7 @@ interface MemoItemProps {
   updateEditMemoContent?: (
     newContent: Partial<{ title: string; subject?: string; raw: string; answer: string }>
   ) => void;
-  handleDownload: (memoSeq: number, fileName: string) => void;
+  handleDownload: (memoSeq: number, fileName: string, googleDriveFileId: string) => void;
   handleAnalyze: (memoSeq: number) => void;
 }
 
@@ -218,43 +218,54 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                 <div className="flex flex-wrap gap-4 mb-4">
                   {memo.files
                     .filter(({ fileName }) => imageRegExp.test(fileName))
-                    .map(({ fileName }, idx) => (
-                      <img
-                        key={idx}
-                        onClick={() => window.open(`/uploads/${memo.insertId}_${memo.seq}_${fileName}`, '_blank')}
-                        className="max-h-36 max-w-36 cursor-pointer rounded-lg border border-gray-300 hover:shadow-lg"
-                        src={`/uploads/${memo.insertId}_${memo.seq}_${fileName}`}
-                        alt={fileName}
-                      />
-                  ))}
+                    .map(({ fileName, googleDriveFileId }, idx) => {
+                      const imageSrc = googleDriveFileId
+                        ? `https://drive.google.com/thumbnail?id=${googleDriveFileId}&sz=w144-h144`
+                        : `/uploads/${memo.insertId}_${memo.seq}_${fileName}`;
+                      const imageLink = googleDriveFileId
+                        ? `https://drive.google.com/file/d/${googleDriveFileId}/view?usp=drive_link`/*`https://lh3.googleusercontent.com/d/${fileId}`*/
+                        : `/uploads/${memo.insertId}_${memo.seq}_${fileName}`;
+                      return (
+                        <img
+                          key={idx}
+                          onClick={() => window.open(imageLink, '_blank')}
+                          className="max-h-36 max-w-36 cursor-pointer rounded-lg border border-gray-300 hover:shadow-lg"
+                          src={imageSrc}
+                          alt={fileName}
+                          loading="lazy" // 성능 최적화
+                        />
+                      );
+                    })}
                 </div>
                 {/* 버튼 영역 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {memo.files
                     .filter(({ fileName }) => !imageRegExp.test(fileName))
-                    .map(({ fileName }, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleDownload(memo.seq, fileName)}
-                        className="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
-                      >
-                        <span className="truncate">{fileName}</span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="w-4 h-4 ml-2"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
+                    .map(({ fileName, googleDriveFileId }, idx) => {
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => handleDownload(memo.seq, fileName, googleDriveFileId)}
+                          className="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16l8 8m0 0l8-8m-8 8V4"
-                          />
-                        </svg>
-                      </button>
-                    ))}
+                          <span className="truncate">{fileName}</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="w-4 h-4 ml-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16l8 8m0 0l8-8m-8 8V4"
+                            />
+                          </svg>
+                        </button>
+                      );
+                    })}
                 </div>
               </div>
             )}
