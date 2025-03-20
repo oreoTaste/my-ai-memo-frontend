@@ -15,7 +15,7 @@ interface Memo {
   subject: string;
   title: string;
   answer: string;
-  raw: string;
+  raws: string;
   seq: number;
   insertId: string;
   createdAt: string;
@@ -32,7 +32,7 @@ export const MemoRouter = () => {
 
   const [title, setTitle] = useState<string>("");
   const [askAI, setAskAI] = useState<boolean>(false);
-  const [raw, setRaw] = useState<string>("");
+  const [raws, setRaws] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 수정 상태 관리
@@ -40,15 +40,15 @@ export const MemoRouter = () => {
   const [editMemoContent, setEditMemoContent] = useState<{
     title: string;
     subject?: string;
-    raw: string;
+    raws: string;
     answer: string;
   }>({
     title: "",
     subject: "",
-    raw: "",
+    raws: "",
     answer: "",
   }); // 수정 중인 메모 내용
-  const [memoHeights, setMemoHeights] = useState<Record<number, { raw: number; answer: number }>>({});
+  const [memoHeights, setMemoHeights] = useState<Record<number, { raws: number; answer: number }>>({});
   const textareaRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map());
   const [files, setFiles] = useState<File[] | null>(null);
   const [query, setQuery] = useState("");
@@ -56,12 +56,12 @@ export const MemoRouter = () => {
   const [isScreenNarrow, setIsScreenNarrow] = useState(window.innerWidth <= 768); // 초기화 (768px 이하에서 스와이프 가능)
 
   useEffect(() => {
-    const newMemoHeights: Record<number, { raw: number; answer: number }> = {};
+    const newMemoHeights: Record<number, { raws: number; answer: number }> = {};
     memos.forEach((memo, index) => {
-      const rawTextarea = textareaRefs.current.get(`raw_${memo.seq}`);
+      const rawsTextarea = textareaRefs.current.get(`raws_${memo.seq}`);
       const answerTextarea = textareaRefs.current.get(`answer_${memo.seq}`);
       newMemoHeights[memo.seq] = {
-        raw: rawTextarea?.scrollHeight || 0,
+        raws: rawsTextarea?.scrollHeight || 0,
         answer: answerTextarea?.scrollHeight || 0,
       };
     });
@@ -92,7 +92,7 @@ export const MemoRouter = () => {
   const startEditing = (memo: {
     title: string;
     subject?: string;
-    raw: string;
+    raws: string;
     seq: number;
     answer: string;
   }) => {
@@ -100,13 +100,13 @@ export const MemoRouter = () => {
     setEditMemoContent({
       title: memo.title,
       subject: memo.subject,
-      raw: memo.raw,
+      raws: memo.raws,
       answer: memo.answer,
     });
   };
   // MemoRouter 내에서
 const handleUpdateEditMemoContent = (
-  newContent: Partial<{ title: string; subject?: string; raw: string; answer: string }>
+  newContent: Partial<{ title: string; subject?: string; raws: string; answer: string }>
 ) => {
   setEditMemoContent((prev) => ({
     ...prev,
@@ -121,7 +121,7 @@ const handleUpdateEditMemoContent = (
     setEditMemoContent({
       title: "",
       subject: "",
-      raw: "",
+      raws: "",
       answer: "",
     });
   };
@@ -131,7 +131,7 @@ const handleUpdateEditMemoContent = (
     let prevMemo = memos.find((el) => el.seq === memoId);
     if (
       prevMemo?.answer === editMemoContent.answer &&
-      prevMemo?.raw === editMemoContent.raw &&
+      prevMemo?.raws === editMemoContent.raws &&
       prevMemo?.subject === editMemoContent.subject &&
       prevMemo?.title === editMemoContent.title
     ) {
@@ -165,7 +165,7 @@ const handleUpdateEditMemoContent = (
       } finally {
         // 수정 상태 종료
         setEditMemoId(null);
-        setEditMemoContent({ title: "", subject: "", raw: "", answer: "" });
+        setEditMemoContent({ title: "", subject: "", raws: "", answer: "" });
       }
     }
   };
@@ -227,7 +227,7 @@ const handleUpdateEditMemoContent = (
   };
 
   const addMemo = async () => {
-    if (!title || !raw) {
+    if (!title || !raws) {
       alert("제목과 내용을 모두 입력해주세요.");
       return;
     }
@@ -239,7 +239,7 @@ const handleUpdateEditMemoContent = (
         // AI 요청
         let formData = new FormData();
         const newMemo: Memo = {
-          raw,
+          raws,
           title,
           subject,
           answer,
@@ -276,7 +276,7 @@ const handleUpdateEditMemoContent = (
     }
 
     const newMemo: Memo = {
-      raw,
+      raws,
       title,
       subject,
       answer,
@@ -326,7 +326,7 @@ const handleUpdateEditMemoContent = (
 
         setMemos((prev) => [newMemo, ...prev]);
         setTitle("");
-        setRaw("");
+        setRaws("");
         setAskAI(false);
         alert("메모가 성공적으로 추가되었습니다.");
       } else {
@@ -412,7 +412,7 @@ const handleUpdateEditMemoContent = (
     if (item?.title?.toLowerCase().includes(query.toLowerCase())) { // 제목
       return true;
     }
-    if (item?.raw?.toLowerCase().includes(query.toLowerCase())) { // 내용
+    if (item?.raws?.toLowerCase().includes(query.toLowerCase())) { // 내용
       return true;
     }
     if (item?.files?.findIndex(el => el.fileName.toLowerCase().includes(query.toLowerCase())) >= 0) { // 파일
@@ -484,8 +484,8 @@ const handleUpdateEditMemoContent = (
               ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-600"
               : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
           } w-full p-2 h-32 border rounded resize-none placeholder-gray-500`}
-          value={raw}
-          onChange={(e) => setRaw(e.target.value)}
+          value={raws}
+          onChange={(e) => setRaws(e.target.value)}
         />
         <input type="file" multiple ref={fileInputRef} onChange={handleFileChange} />
         {/* {file && <p>선택한 파일: {file.name}</p>} */}

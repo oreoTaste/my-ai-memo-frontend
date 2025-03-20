@@ -5,7 +5,7 @@ export interface Memo {
   seq: number;
   title: string;
   subject?: string;
-  raw: string;
+  raws: string;
   answer: string;
   createdAt: string;
   modifiedAt: string;
@@ -18,7 +18,7 @@ interface MemoItemProps {
   isDarkMode: boolean;
   isEditing: boolean;
   isExpanded: boolean;
-  memoHeights?: { raw: number; answer: number };
+  memoHeights?: { raws: number; answer: number };
   index: number;
   isScreenNarrow: boolean;
   // 부모에서 내려받은 이벤트 핸들러들
@@ -32,11 +32,11 @@ interface MemoItemProps {
   editMemoContent?: {
     title: string;
     subject?: string;
-    raw: string;
+    raws: string;
     answer: string;
   };
   updateEditMemoContent?: (
-    newContent: Partial<{ title: string; subject?: string; raw: string; answer: string }>
+    newContent: Partial<{ title: string; subject?: string; raws: string; answer: string }>
   ) => void;
   handleDownload: (memoSeq: number, fileName: string, googleDriveFileId: string) => void;
   handleAnalyze: (memoSeq: number) => void;
@@ -125,9 +125,9 @@ export const MemoItem: React.FC<MemoItemProps> = ({
             />
             {/* 내용 입력 */}
             <textarea
-              value={editMemoContent?.raw || ""}
+              value={editMemoContent?.raws || ""}
               onChange={(e) => {
-                updateEditMemoContent && updateEditMemoContent({ raw: e.target.value })
+                updateEditMemoContent && updateEditMemoContent({ raws: e.target.value })
                 e.target.style.height = "auto"; // 높이를 초기화
                 e.target.style.height = `${e.target.scrollHeight}px`; // 내용에 맞게 높이 조정                
               }}
@@ -182,14 +182,14 @@ export const MemoItem: React.FC<MemoItemProps> = ({
             )}
             <textarea
               readOnly
-              ref={(el) => el && textareaRefs.current.set(`raw_${memo.seq}`, el)}
+              ref={(el) => el && textareaRefs.current.set(`raws_${memo.seq}`, el)}
               className={`w-full mt-3 ${
                 isDarkMode
                   ? "bg-gray-800 text-white placeholder-gray-500"
                   : "bg-gray-100 text-gray-800 placeholder-gray-500"
               } text-sm font-medium p-3 rounded-lg resize-none focus:outline-none`}
-              style={{ height: memoHeights?.raw || "auto" }}
-              value={`${memo.raw}`}
+              style={{ height: memoHeights?.raws || "auto" }}
+              value={`${memo.raws}`}
             />
 
             {memo.answer && (

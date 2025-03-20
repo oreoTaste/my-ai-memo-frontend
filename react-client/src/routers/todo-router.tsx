@@ -10,9 +10,9 @@ import Searchbar from "../components/Searchbar";
 
 interface Todo {
   seq: number;
-  date: string;
+  yyyymmdd: string;
   title: string;
-  desc: string;
+  description: string;
 }
 
 export const TodoRouter = () => {
@@ -57,8 +57,8 @@ export const TodoRouter = () => {
     }
   }, [selectedDate, prevMonth]);
 
-  const getFullDate = (date: Date | null): string => {
-    const targetDate = date || new Date();
+  const getFullDate = (yyyymmdd: Date | null): string => {
+    const targetDate = yyyymmdd || new Date();
   
     const year = targetDate.getFullYear();
     const month = (targetDate.getMonth() + 1).toString().padStart(2, '0'); // 월은 0부터 시작하므로 1을 더함
@@ -69,7 +69,7 @@ export const TodoRouter = () => {
   
   // 모달 열기 및 닫기
   const openModal = (todo?: Todo) => {
-    setSelectedDate(todo ? new Date(todo.date) : new Date());
+    setSelectedDate(todo ? new Date(todo.yyyymmdd) : new Date());
     setEditTodo(todo || null); // 할 일 수정인지 새로 추가인지 결정
     setModalIsOpen(true);
   };
@@ -88,16 +88,16 @@ export const TodoRouter = () => {
 
   // 기존 addTodo와 updateTodo 통합
   const saveTodo = async () => {
-    if (!selectedDate || !(editTodo ? editTodo.title : newTodoTitle) || !(editTodo ? editTodo.desc : newTodoDescription)) {
+    if (!selectedDate || !(editTodo ? editTodo.title : newTodoTitle) || !(editTodo ? editTodo.description : newTodoDescription)) {
       alert("모든 필드를 채워주세요.");
       return;
     }
 
     const todoData: Todo = {
       seq: editTodo?.seq || 0, // seq가 0이면 새로 추가
-      date: getFullDate(selectedDate),
+      yyyymmdd: getFullDate(selectedDate),
       title: editTodo ? editTodo.title : newTodoTitle,
-      desc: editTodo ? editTodo.desc : newTodoDescription,
+      description: editTodo ? editTodo.description : newTodoDescription,
     };
 
     try {
@@ -154,10 +154,10 @@ export const TodoRouter = () => {
     if (item?.title?.toLowerCase().includes(query.toLowerCase())) { // 제목
       return true;
     }
-    if (item?.desc?.toLowerCase().includes(query.toLowerCase())) { // 내용
+    if (item?.description?.toLowerCase().includes(query.toLowerCase())) { // 내용
       return true;
     }
-    if (item?.date?.toLowerCase().includes(query.toLowerCase())) { // 주제
+    if (item?.yyyymmdd?.toLowerCase().includes(query.toLowerCase())) { // 주제
       return true;
     }
     return false;
@@ -187,9 +187,9 @@ export const TodoRouter = () => {
           onActiveStartDateChange={({ activeStartDate }) => handleDateChange(activeStartDate)} // 월이 변경될 때마다 호출
           onClickDay={(date) =>
             openModal({
-              date: getFullDate(date),
+              yyyymmdd: getFullDate(date),
               title: "",
-              desc: "",
+              description: "",
               seq: 0,
             })
           }
@@ -207,7 +207,7 @@ export const TodoRouter = () => {
           } w-full h-[500px]`}
           tileContent={({ date }) => {
             const todosForDate = filteredTodos.filter(
-              (todo) => todo.date === getFullDate(date)
+              (todo) => todo.yyyymmdd === getFullDate(date)
             );
             return todosForDate.map((todo) => (
             <div key={todo.seq} className="flex items-center">
@@ -245,7 +245,7 @@ export const TodoRouter = () => {
                 >
                   <div>
                     <h3 className="font-bold">{todo.title}</h3>
-                    <p className="text-sm">{todo.desc}</p>
+                    <p className="text-sm">{todo.description}</p>
                   </div>
                   <button
                     onClick={() => openModal(todo)}
@@ -367,7 +367,7 @@ export const TodoRouter = () => {
             />
             <textarea
               placeholder="설명"
-              value={editTodo ? editTodo.desc : newTodoDescription}
+              value={editTodo ? editTodo.description : newTodoDescription}
               onChange={(e) =>
                 editTodo
                   ? setEditTodo((prev) => prev && { ...prev, desc: e.target.value })
