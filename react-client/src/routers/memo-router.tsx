@@ -319,9 +319,12 @@ const handleUpdateEditMemoContent = (
         newMemo.insertId = String(response.data?.memo?.insertId);
         newMemo.createdAt = response.data?.memo?.createdAt;
         newMemo.modifiedAt = response.data?.memo?.modifiedAt;
-
-        for(let file of files || []) {
-          newMemo.files.push({fileName: file.name, googleDriveFileId: ""})
+        if(response.data?.memo?.files) {
+          newMemo.files = response.data?.memo?.files;
+        } else {
+          for(let file of files || []) {
+            newMemo.files.push({fileName: file.name, googleDriveFileId: ""})
+          }  
         }
 
         setMemos((prev) => [newMemo, ...prev]);
