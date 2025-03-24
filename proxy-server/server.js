@@ -145,7 +145,7 @@ const apiProxy = async (req, res) => {
       url: targetUrl,
       headers,
       data,
-      timeout: 5000,
+      timeout: 10000,
       responseType: req.headers.accept?.includes('application/json') ? 'json' : 'stream', // JSON 또는 스트림 처리
       maxBodyLength: Infinity,
       maxContentLength: Infinity
