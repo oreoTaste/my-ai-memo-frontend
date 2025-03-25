@@ -69,37 +69,6 @@ try {
   app.use(express.urlencoded({ extended: true, limit: "1024mb" })); // URL-encoded 데이터 처리  
 } catch (e) {}
 
-const apiGeminiProxy = async (req, res) => {
-  const targetUrl = `${process.env.REACT_APP_AI_URL}${process.env.REACT_APP_AI_KEY}`;
-  try {
-    console.log(targetUrl, req.method, req.body?.text);
-    const response = await axios({
-      method: req.method,
-      url: targetUrl,
-      headers: { "Content-Type": "application/json" }, //req.headers,
-      data: {
-        "contents": [{
-          "parts":[{"text": req.body?.text}]
-          }]
-         },
-      withCredentials: true, // 쿠키를 포함한 요청
-    });
-
-    console.log(response.data?.candidates[0]?.content?.parts[0]?.text);
-
-    // Set-Cookie 헤더를 클라이언트에 전달
-    if (response.headers['set-cookie']) {
-      res.set('Set-Cookie', response.headers['set-cookie']);
-    }
-
-    // 백엔드 응답을 클라이언트에 반환
-    res.json(response.data);
-  } catch (error) {
-    // console.error('백엔드 서버 요청 실패:', error.response?.data);
-    res.json({ message: '서버 오류가 발생했습니다. 나중에 다시 시도해주세요.' });
-  }
-}
-
 const apiProxy = async (req, res) => {
   const targetUrl = `${process.env.NEST_APP_API_URL}${req.originalUrl}`;
   console.log(`${req.method} ${targetUrl} ${req.method}`);
@@ -184,8 +153,6 @@ const apiProxy = async (req, res) => {
   }
 };
 
-// 모든 API 요청을 NestJS로 프록시
-app.use('/api/gemini', apiGeminiProxy);
 
 const upload = multer({storage: multer.diskStorage({ // 파일 저장 위치 설정
   destination: (req, file, callback) => {
