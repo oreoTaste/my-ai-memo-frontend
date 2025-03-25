@@ -19,7 +19,6 @@ const ProtectedRoutes = () => {
         <Route path="/user/todos" element={<TodoRouter />} />
         <Route path="/user/records" element={<RecordRouter />} />
         <Route path="/users" element={<UsersRouter />}/>
-        <Route path="/register" element={<RegisterRouter />} />
         <Route path="/codes" element={<CodelistRouter />} />
         <Route path="/queries" element={<QueryRouter />} />
         <Route path="*" element={<NotFound />} />
@@ -34,6 +33,8 @@ const App = () => {
         <Routes>
           {/* 메인화면 */}
           <Route path="/" element={<LoggedOutRouter />} />
+          {/* 회원가입화면 */}
+          <Route path="/register" element={<RegisterRouter />} />
           {/* 기타화면 */}
           <Route path="/*" element={<UserProvider>
                                       <ProtectedRoutes />
