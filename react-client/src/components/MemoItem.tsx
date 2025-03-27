@@ -221,10 +221,10 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                     .map(({ fileName, googleDriveFileId }, idx) => {
                       const imageSrc = googleDriveFileId
                         ? `https://drive.google.com/thumbnail?id=${googleDriveFileId}&sz=w144-h144`
-                        : `/uploads/${memo.insertId}_${memo.seq}_${fileName}`;
+                        : `/uploads/${memo.seq}/${fileName}`;
                       const imageLink = googleDriveFileId
                         ? `https://drive.google.com/file/d/${googleDriveFileId}/view?usp=drive_link`/*`https://lh3.googleusercontent.com/d/${fileId}`*/
-                        : `/uploads/${memo.insertId}_${memo.seq}_${fileName}`;
+                        : `/uploads/${memo.seq}/${fileName}`;
                       return (
                         <img
                           key={idx}
