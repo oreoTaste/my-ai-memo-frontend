@@ -54,6 +54,7 @@ export const MemoRouter = () => {
   const [query, setQuery] = useState("");
   const [isSwiped, setIsSwiped] = useState(false);
   const [isScreenNarrow, setIsScreenNarrow] = useState(window.innerWidth <= 768); // 초기화 (768px 이하에서 스와이프 가능)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false); // 추가
 
   useEffect(() => {
     const newMemoHeights: Record<number, { raws: number; answer: number }> = {};
@@ -212,13 +213,13 @@ const handleUpdateEditMemoContent = (
   };
 
   // 분석 API 호출 함수
-  const handleAnalyze = (memoSeq: number) => {
+  const handleAnalyze = async (memoSeq: number) => {
     try {
-      if (!window.confirm("해당 메모의 파일을 분석하시겠습니까?\n분석된 파일은 엑셀파일로 생성됩니다.\n(파일명: output.xlsx)")) {
+      if (!window.confirm("해당 메모의 파일을 분석하시겠습니까?\n분석된 파일은 엑셀파일로 생성됩니다.\n(파일명: output.xlsx)\n\n**1분후 화면을 새로고침해주세요.**")) {
         return;
       }
 
-      axios.post(`/memo/analyze?seq=${memoSeq}`,
+      await axios.post(`/memo/analyze?seq=${memoSeq}`,
         JSON.stringify({ seq: memoSeq }), // 메모 seq 전달 
         { withCredentials: true, headers: { "Content-Type": "application/json", "X-API-Request": "true"}}
       );
@@ -232,112 +233,124 @@ const handleUpdateEditMemoContent = (
       return;
     }
 
-    let [answer, subject]: [string, string] = ["", ""];
+    if (isSubmitting) {
+      return; // 이미 요청 중이면 실행 중단
+    }
+    setIsSubmitting(true); // 요청 시작 시 비활성화
 
-    if(askAI) {
+    try {
+      let [answer, subject]: [string, string] = ["", ""];
+
+      if(askAI) {
+        try {
+          // AI 요청
+          let formData = new FormData();
+          const newMemo: Memo = {
+            raws,
+            title,
+            subject,
+            answer,
+            seq: 0, // 사용x
+            insertId: "", // 사용x
+            createdAt: "", // 사용x
+            modifiedAt: "", // 사용x
+            files: [],
+            isSwiped,
+            googleDriveFileId: ""
+          };
+      
+          if(files) {
+            for(let file of files) {
+              formData.append("files", file);
+            }
+          }
+          // 추가로 req.body의 키/값을 FormData에 추가
+          for (const [key, value] of Object.entries(newMemo)) {
+            formData.append(key, value);
+          }
+      
+          const aiAnswers = (await axios.post(`/memo/get-advice`
+            , formData
+            , { withCredentials: true
+              , headers: { "content-type": "multipart/form-data", "X-API-Request": "true" }
+              , maxContentLength: 1024 ** 3 // 1GB로 설정
+              , maxBodyLength: 1024 ** 3 // 1GB로 설정
+          })).data;
+
+          subject = aiAnswers.subject;
+          answer = aiAnswers.advice;
+        } catch (error) {}  
+      }
+
+      const newMemo: Memo = {
+        raws,
+        title,
+        subject,
+        answer,
+        seq: 0, // 사용x
+        insertId: "", // 사용x
+        createdAt: "", // 사용x
+        modifiedAt: "", // 사용x
+        files: [],
+        isSwiped,
+        googleDriveFileId: ""
+      };
+
       try {
-        // AI 요청
         let formData = new FormData();
-        const newMemo: Memo = {
-          raws,
-          title,
-          subject,
-          answer,
-          seq: 0, // 사용x
-          insertId: "", // 사용x
-          createdAt: "", // 사용x
-          modifiedAt: "", // 사용x
-          files: [],
-          isSwiped,
-          googleDriveFileId: ""
-        };
-    
         if(files) {
           for(let file of files) {
             formData.append("files", file);
           }
+          // 파일 입력 초기화
+          if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // 파일 입력 필드 리셋
+          }
+          setFiles(null);
         }
         // 추가로 req.body의 키/값을 FormData에 추가
         for (const [key, value] of Object.entries(newMemo)) {
           formData.append(key, value);
         }
     
-        const aiAnswers = (await axios.post(`/memo/get-advice`
+        const response = await axios.post(`/memo/insert`
           , formData
           , { withCredentials: true
             , headers: { "content-type": "multipart/form-data", "X-API-Request": "true" }
             , maxContentLength: 1024 ** 3 // 1GB로 설정
             , maxBodyLength: 1024 ** 3 // 1GB로 설정
-        })).data;
+            });
 
-        subject = aiAnswers.subject;
-        answer = aiAnswers.advice;
-      } catch (error) {}  
-    }
+        if (response.data.result) {
+          newMemo.seq = response.data?.memo?.seq;
+          newMemo.insertId = String(response.data?.memo?.insertId);
+          newMemo.createdAt = response.data?.memo?.createdAt;
+          newMemo.modifiedAt = response.data?.memo?.modifiedAt;
+          if(response.data?.memo?.files) {
+            newMemo.files = response.data?.memo?.files;
+          } else {
+            for(let file of files || []) {
+              newMemo.files.push({fileName: file.name, googleDriveFileId: ""})
+            }  
+          }
 
-    const newMemo: Memo = {
-      raws,
-      title,
-      subject,
-      answer,
-      seq: 0, // 사용x
-      insertId: "", // 사용x
-      createdAt: "", // 사용x
-      modifiedAt: "", // 사용x
-      files: [],
-      isSwiped,
-      googleDriveFileId: ""
-    };
-
-    try {
-      let formData = new FormData();
-      if(files) {
-        for(let file of files) {
-          formData.append("files", file);
-        }
-        // 파일 입력 초기화
-        if (fileInputRef.current) {
-          fileInputRef.current.value = ""; // 파일 입력 필드 리셋
-        }
-        setFiles(null);
-      }
-      // 추가로 req.body의 키/값을 FormData에 추가
-      for (const [key, value] of Object.entries(newMemo)) {
-        formData.append(key, value);
-      }
-  
-      const response = await axios.post(`/memo/insert`
-        , formData
-        , { withCredentials: true
-          , headers: { "content-type": "multipart/form-data", "X-API-Request": "true" }
-          , maxContentLength: 1024 ** 3 // 1GB로 설정
-          , maxBodyLength: 1024 ** 3 // 1GB로 설정
-          });
-
-      if (response.data.result) {
-        newMemo.seq = response.data?.memo?.seq;
-        newMemo.insertId = String(response.data?.memo?.insertId);
-        newMemo.createdAt = response.data?.memo?.createdAt;
-        newMemo.modifiedAt = response.data?.memo?.modifiedAt;
-        if(response.data?.memo?.files) {
-          newMemo.files = response.data?.memo?.files;
+          setMemos((prev) => [newMemo, ...prev]);
+          setTitle("");
+          setRaws("");
+          setAskAI(false);
+          alert("메모가 성공적으로 추가되었습니다.");
         } else {
-          for(let file of files || []) {
-            newMemo.files.push({fileName: file.name, googleDriveFileId: ""})
-          }  
+          alert("메모 추가에 실패했습니다. 다시 시도해주세요.");
         }
-
-        setMemos((prev) => [newMemo, ...prev]);
-        setTitle("");
-        setRaws("");
-        setAskAI(false);
-        alert("메모가 성공적으로 추가되었습니다.");
-      } else {
-        alert("메모 추가에 실패했습니다. 다시 시도해주세요.");
+      } catch (err) {
+        console.error("메모 추가 중 오류 발생:", err);
+        alert("메모 추가 중 오류가 발생했습니다.");
       }
     } catch (err) {
       console.error("메모 추가 중 오류 발생:", err);
       alert("메모 추가 중 오류가 발생했습니다.");
+    } finally {
+      setIsSubmitting(false); // 요청 완료 후 활성화
     }
   };
 
@@ -530,13 +543,14 @@ const handleUpdateEditMemoContent = (
         </div>
         <button
           onClick={addMemo}
+          disabled={isSubmitting} // 비활성화 조건 추가
           className={`${
             isDarkMode
               ? "bg-indigo-700 text-white hover:bg-indigo-900"
               : "bg-indigo-600 text-white hover:bg-indigo-700"
           } mt-4 px-4 py-2 rounded  transition`}
         >
-          추가하기
+          {isSubmitting ? "추가 중..." : "추가하기"}
         </button>
       </div>
 
