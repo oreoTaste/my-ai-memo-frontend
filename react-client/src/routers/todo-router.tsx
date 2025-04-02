@@ -370,7 +370,7 @@ export const TodoRouter = () => {
               value={editTodo ? editTodo.description : newTodoDescription}
               onChange={(e) =>
                 editTodo
-                  ? setEditTodo((prev) => prev && { ...prev, desc: e.target.value })
+                  ? setEditTodo((prev) => prev && { ...prev, description: e.target.value })
                   : setNewTodoDescription(e.target.value)
               }
               className={`
