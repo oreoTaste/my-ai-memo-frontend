@@ -134,4 +134,10 @@ docker*
 *Dockerfile
 
 # upload files
-/uploads
+uploads
+
+# build
+build
+
+# pem
+.pem
