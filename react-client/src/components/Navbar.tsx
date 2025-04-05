@@ -8,8 +8,7 @@ const Navbar = ({ isDarkMode }: { isDarkMode: boolean }) => {
   const tabs = [
     { label: "메모", path: "/user/memos" },
     { label: "할일", path: "/user/todos" },
-    { label: "기록", path: "/user/records" },
-    { label: "사용자", path: "/users" },
+    { label: "기록", path: "/user/records" }
   ];
 
   if(!isLoading && storedUser?.adminYn === "Y") {
