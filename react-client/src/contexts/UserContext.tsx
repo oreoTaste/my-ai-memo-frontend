@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import secureLocalStorage from "react-secure-storage";
 
 type User = {
+  id: number;
   adminYn: string;
   token: string;
 };
