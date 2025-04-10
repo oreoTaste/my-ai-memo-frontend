@@ -20,7 +20,7 @@ export interface Memo {
     modifiedAt: string;
     files: UploadFile[];
     insertId: number;
-    sharedIds?: number[];
+    // sharedIds?: number[];
     isSwiped: boolean;
     googleDriveFileId: string;
     insertUser?: MemoUser;
