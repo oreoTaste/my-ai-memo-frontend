@@ -1,5 +1,5 @@
-/** 2025.04.11 #1 */
-import React, { useState, useEffect } from "react"; // useEffect 추가
+/** 2025.04.17 #1 */
+import React, { useState, useEffect } from "react";
 import { useSwipeable } from "react-swipeable";
 import { useUser } from "../contexts/UserContext";
 import { MemoUser, Memo } from "../types/memo";
@@ -51,7 +51,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
   const [isSwiped, setIsSwiped] = useState(false);
   const { user: storedUser } = useUser();
 
-  // 편집 모드에서 사용할 로컬 상태
+  // 편집 모드에서 사용할 로컬 상태 - 수정됨: shareType 포함
   const [localSearchName, setLocalSearchName] = useState("");
   const [localSearchLoginId, setLocalSearchLoginId] = useState("");
   const [localSearchUserResults, setLocalSearchUserResults] = useState<MemoUser[]>([]);
@@ -115,13 +115,13 @@ export const MemoItem: React.FC<MemoItemProps> = ({
     }
   };
 
-  // 로컬 사용자 선택 토글 함수
-  const toggleUserSelectionLocally = (user: MemoUser) => {
+  // 로컬 사용자 선택 토글 함수 - 수정됨: shareType 추가
+  const toggleUserSelectionLocally = (user: MemoUser, shareType: 'view' | 'edit') => {
     const currentSharedUsers = localEditContent.sharedUsers || [];
-    const isSelected = currentSharedUsers.some((u) => u.id === user.id);
-    const newSharedUsers = isSelected
-      ? currentSharedUsers.filter((u) => u.id !== user.id)
-      : [...currentSharedUsers, user];
+    const exists = currentSharedUsers.find((u) => u.id === user.id);
+    const newSharedUsers = exists
+      ? currentSharedUsers.map((u) => (u.id === user.id ? { ...u, shareType } : u))
+      : [...currentSharedUsers, { ...user, shareType }];
     setLocalEditContent({ ...localEditContent, sharedUsers: newSharedUsers });
     setLocalSearchName("");
     setLocalSearchLoginId("");
@@ -134,6 +134,10 @@ export const MemoItem: React.FC<MemoItemProps> = ({
   };
 
   const selectedUsers = localEditContent.sharedUsers;
+
+  // 편집 버튼 표시 조건 - 수정됨: shareType 기반
+  const isOwned = memo.insertUser?.id === storedUser?.id;
+  const canEdit = isOwned || memo.sharedUsers?.some((u) => u.id === storedUser?.id && u.shareType === 'edit');
 
   return (
     <div
@@ -195,7 +199,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
               />
             </div>
 
-            {/* 공유 사용자 섹션 */}
+            {/* 공유 사용자 섹션 - 수정됨: shareType 선택 UI 추가 */}
             <div className={`p-4 rounded-md ${isDarkMode ? "bg-gray-700" : "bg-gray-100"} mb-6`}>
               <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
                 공유 사용자 수정
@@ -233,28 +237,35 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                   className={`relative mt-2 w-full max-h-[50vh] overflow-y-auto rounded-md shadow-lg transition-all duration-200 ${
                     isDarkMode ? "bg-gray-700 text-white" : "bg-white text-gray-800"
                   }`}
-                  style={{ maxHeight: "50vh", top: "100%" }} // 화면 높이의 50%로 제한, 버튼 아래에 고정
+                  style={{ maxHeight: "50vh", top: "100%" }}
                 >
                   {localSearchUserResults.map((user) => (
-                    <div
-                      key={user.id}
-                      onClick={() => toggleUserSelectionLocally(user)}
-                      className={`p-3 flex justify-between items-center cursor-pointer hover:${
-                        isDarkMode ? "bg-gray-600" : "bg-gray-100"
-                      } ${
-                        selectedUsers.some((u) => u.id === user.id)
-                          ? isDarkMode
-                            ? "bg-indigo-600 text-white"
-                            : "bg-indigo-100 text-indigo-800"
-                          : ""
-                      }`}
-                    >
+                    <div key={user.id} className="p-3 flex justify-between items-center">
                       <span>
                         {user.name} ({user.loginId})
                       </span>
-                      {selectedUsers.some((u) => u.id === user.id) && (
-                        <span className="text-sm text-indigo-500">✓</span>
-                      )}
+                      <div className="flex items-center space-x-2">
+                        <label>
+                          <input
+                            type="radio"
+                            name={`shareType_${user.id}`}
+                            value="view"
+                            onChange={() => toggleUserSelectionLocally(user, 'view')}
+                            checked={selectedUsers.some((u) => u.id === user.id && u.shareType === 'view')}
+                          />
+                          조회
+                        </label>
+                        <label>
+                          <input
+                            type="radio"
+                            name={`shareType_${user.id}`}
+                            value="edit"
+                            onChange={() => toggleUserSelectionLocally(user, 'edit')}
+                            checked={selectedUsers.some((u) => u.id === user.id && u.shareType === 'edit')}
+                          />
+                          수정
+                        </label>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -268,12 +279,12 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                         isDarkMode ? "bg-indigo-700 text-white" : "bg-indigo-100 text-indigo-800"
                       }`}
                     >
-                      {user.name} ({user.loginId})
+                      {user.name} ({user.loginId}) - {user.shareType}
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleUserSelectionLocally(user);
-                        }}
+                        onClick={() => setLocalEditContent({
+                          ...localEditContent,
+                          sharedUsers: selectedUsers.filter((u) => u.id !== user.id)
+                        })}
                         className="ml-2 focus:outline-none"
                       >
                         <svg
@@ -293,15 +304,11 @@ export const MemoItem: React.FC<MemoItemProps> = ({
             </div>
           </div>            
         ) : (
-          // 읽기 모드 UI는 변경 없음
           <div className={`p-6 rounded-lg shadow-md ${isDarkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"}`}>
+            {/* 메모 제목 */}
             <h4 className={`mb-3 text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-800"}`}>
               [{memo.title}]
-              {memo.insertId !== storedUser?.id
-              ? ` (shared by ${memo?.insertUser?.loginId})`
-              : memo.sharedUsers?.length
-              ? ` (shared to ${memo.sharedUsers.map((el) => el.loginId).join(", ")})`
-              : null}
+              {!isOwned ? ` (shared by ${memo.insertUser?.loginId})` : null}
             </h4>
             {memo.subject && (
               <p className={`mb-2 text-sm font-medium ${isDarkMode ? "text-indigo-300" : "text-indigo-500"}`}>
@@ -327,6 +334,26 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                 style={{ height: memoHeights?.answer || "auto" }}
                 value={`조언 : ${memo.answer}`}
               />
+            )}
+            {/* 메모 작성자인 경우, 공유 사용자 목록 표시 */}
+            {isOwned && memo.sharedUsers && memo.sharedUsers.length > 0 && (
+              <div className={`mt-4 p-4 rounded-md ${isDarkMode ? "bg-gray-700" : "bg-gray-100"}`}>
+                <h5 className={`text-sm font-semibold mb-2 ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
+                  공유 회원
+                </h5>
+                <div className="flex flex-wrap gap-2">
+                  {memo.sharedUsers.map((user) => (
+                    <span
+                      key={user.id}
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
+                        isDarkMode ? "bg-indigo-700 text-white" : "bg-indigo-100 text-indigo-800"
+                      }`}
+                    >
+                      {user.name} ({user.loginId}) - {user.shareType}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
             {memo.files && memo.files.length > 0 && (
               <div className="mt-5">
@@ -384,9 +411,8 @@ export const MemoItem: React.FC<MemoItemProps> = ({
           </div>
         )}
       </div>
-      { /* 수정 버튼 노출 조건 */
-      (/* 조건 1. 화면이 넓거나 좌로 스와이프하지 않은 경우에만 */!isScreenNarrow || isSwiped) && 
-      (
+      {/* 버튼 표시 - 수정됨: canEdit 조건 적용 */}
+      {(!isScreenNarrow || isSwiped) && (
         <div className="relative top-0 right-0 h-full flex flex-col items-center justify-center space-y-4 p-2">
           {isEditing ? (
             <>
@@ -407,7 +433,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
             </>
           ) : (
             <>
-              {(/* 조건 1. 본인이 작성한 메모여야 함*/storedUser?.id === memo.insertUser?.id) && (
+              {canEdit && (
                 <button
                   onClick={() => startEditing(memo)}
                   className="w-10 h-10 bg-yellow-500 text-white rounded-full flex items-center justify-center hover:bg-yellow-600 transition"
@@ -423,9 +449,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
               >
                 ✕
               </button>
-
-              {(/* 조건 1. 본인이 작성한 메모여야 함*/storedUser?.id === memo.insertUser?.id) && 
-                isAnalyzableFile() && (
+              {isOwned && isAnalyzableFile() && (
                 <button
                   onClick={() => handleAnalyze(memo.seq)}
                   className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition"

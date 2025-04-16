@@ -3,7 +3,8 @@ export interface MemoUser {
     id: number;
     name: string;
     loginId: string;
-  }
+    shareType?: 'view'|'edit';
+}
   
 export interface UploadFile {
     fileName: string;
