@@ -4,6 +4,7 @@ import { useSwipeable } from "react-swipeable";
 import { useUser } from "../contexts/UserContext";
 import { MemoUser, Memo } from "../types/memo";
 import axios from "axios";
+import { MemoUserTag } from "./MemoUserTag";
 
 interface MemoItemProps {
   memo: Memo;
@@ -135,7 +136,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
 
   // 편집 버튼 표시 조건 - 수정됨: shareType 기반
   const isOwned = memo.insertUser?.id === storedUser?.id;
-  const canEdit = isOwned || memo.sharedUsers?.some((u) => u.id === storedUser?.id && u.shareType === 'edit');
+  const canEdit = memo.sharedUsers?.some((u) => u.id === storedUser?.id && u.shareType === 'edit');
 
   return (
     <div
@@ -261,39 +262,25 @@ export const MemoItem: React.FC<MemoItemProps> = ({
               {selectedUsers.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {selectedUsers.map((user) => (
-                    <span
-                      key={user.id}
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium max-w-[150px] truncate relative group ${
-                        isDarkMode ? "bg-indigo-700 text-white" : "bg-indigo-100 text-indigo-800"
-                      }`}
-                      aria-label={`Shared with ${user.name} with ${user.shareType} permission`}
-                    >
-                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                      </svg>
-                      {user.name} ({user.loginId}) - {user.shareType}
-                      <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-1 -top-8 left-1/2 transform -translate-x-1/2 z-10">
-                        {user.shareType === "edit" ? "수정: 메모 편집 가능" : "조회: 메모 보기만 가능"}
-                      </span>
-                      <button
-                        onClick={() => setLocalEditContent({
-                          ...localEditContent,
-                          sharedUsers: selectedUsers.filter((u) => u.id !== user.id)
-                        })}
-                        className="ml-2 focus:outline-none"
-                        aria-label={`Remove ${user.name} from shared users`}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="w-4 h-4 text-red-500 hover:text-red-700"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </span>
+                    <MemoUserTag name={user.name} loginId={user.loginId} isDarkMode={isDarkMode} canEdit={user.shareType === "edit"} 
+                    additionalTag={<button
+                                    onClick={() => setLocalEditContent({
+                                      ...localEditContent,
+                                      sharedUsers: selectedUsers.filter((u) => u.id !== user.id)
+                                    })}
+                                    className="ml-2 focus:outline-none"
+                                    aria-label={`Remove ${user.name} from shared users`}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="w-4 h-4 text-red-500 hover:text-red-700"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>}/>
                   ))}
                 </div>
               )}
@@ -305,18 +292,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
             <h4 className={`mb-3 text-xl font-semibold flex items-center gap-2 ${isDarkMode ? "text-white" : "text-gray-800"}`}>
               [{memo.title}]
               {!isOwned && memo.insertUser && (
-                <span
-                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium relative group ${isDarkMode ? "bg-indigo-700 text-white" : "bg-indigo-100 text-indigo-800"}`}
-                  aria-label={`Shared by ${memo.insertUser.name} with ${canEdit? "edit" : "view"} permission`}
-                >
-                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                  </svg>
-                  {memo.insertUser.name} ({memo.insertUser.loginId}) - {canEdit? "edit" : "view"}
-                  <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-1 -top-8 left-1/2 transform -translate-x-1/2 z-10">
-                    {canEdit? "수정: 메모 편집 가능" : "조회: 메모 보기만 가능"}
-                  </span>
-                </span>
+                <MemoUserTag name={memo.insertUser.name} loginId={memo.insertUser.loginId} isDarkMode={isDarkMode} canEdit={canEdit} additionalCss={`ml-auto`}/>
               )}
             </h4>
             {memo.subject && (
@@ -352,21 +328,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                 </h5>
                 <div className="flex flex-wrap gap-2">
                   {memo.sharedUsers.map((user) => (
-                    <span
-                      key={user.id}
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium max-w-[150px] truncate relative group ${
-                        isDarkMode ? "bg-indigo-700 text-white" : "bg-indigo-100 text-indigo-800"
-                      }`}
-                      aria-label={`Shared with ${user.name} with ${user.shareType} permission`}
-                    >
-                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                      </svg>
-                      {user.name} ({user.loginId}) - {user.shareType}
-                      <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-1 -top-8 left-1/2 transform -translate-x-1/2 z-10">
-                        {user.shareType === "edit" ? "수정: 메모 편집 가능" : "조회: 메모 보기만 가능"}
-                      </span>
-                    </span>
+                    <MemoUserTag name={user.name} loginId={user.loginId} isDarkMode={isDarkMode} canEdit={user.shareType === "edit"}/>
                   ))}
                 </div>
               </div>
@@ -449,7 +411,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
             </>
           ) : (
             <>
-              {canEdit && (
+              {(isOwned || canEdit) && (
                 <button
                   onClick={() => startEditing(memo)}
                   className="w-10 h-10 bg-yellow-500 text-white rounded-full flex items-center justify-center hover:bg-yellow-600 transition"
@@ -465,7 +427,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
               >
                 ✕
               </button>
-              {isOwned && isAnalyzableFile() && (
+              {(isOwned || canEdit) && isAnalyzableFile() && (
                 <button
                   onClick={() => handleAnalyze(memo.seq)}
                   className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition"

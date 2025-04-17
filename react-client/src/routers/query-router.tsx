@@ -29,6 +29,7 @@ export const QueryRouter = () => {
 
   const sendQuery = async () => {
     try {
+      /*
       if (
         inputQuery
           .toUpperCase()
@@ -42,6 +43,7 @@ export const QueryRouter = () => {
         alert("금지된 명령어입니다.");
         return false;
       }
+      */
   
       const newInputQuery = inputQuery.replace("SELECT ", "SELECT /*+ GATHER_PLAN_STATISTICS */ ");
       const queryParamLength = newInputQuery.match(/:\d{1,}/g)?.length || 0;
