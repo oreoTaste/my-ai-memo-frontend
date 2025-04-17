@@ -49,6 +49,7 @@ export const MemoRouter = () => {
   const [query, setQuery] = useState("");
   const [isScreenNarrow, setIsScreenNarrow] = useState(window.innerWidth <= 768);
   const [expandedMemoIds, setExpandedMemoIds] = useState<number[]>([]);
+  const [isWritingMemo, setIsWritingMemo] = useState(false);
 
   // 메모 높이 계산
   useEffect(() => {
@@ -390,10 +391,45 @@ export const MemoRouter = () => {
       <Navbar isDarkMode={isDarkMode} />
       <DarkButton />
       <Searchbar isDarkMode={isDarkMode} value={query} onChange={setQuery} />
+      {/* 메모 입력 폼이 없을때 (접혀 있는 상태) */}
+      <div
+        className={`
+          transition-all duration-300 ease-in-out
+          ${isWritingMemo ? 'max-h-0 opacity-0 hidden' : 'max-h-32 opacity-100'}
+          ${isDarkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-300'}
+          w-full max-w-4xl p-6 rounded-lg shadow-lg mb-8
+        `}
+      >
+        <div className="flex justify-between items-center h-8">
+          <span className="text-lg">새로운 메모를 작성해보세요!</span>
+          <button
+            className="px-4 py-1 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md"
+            onClick={() => setIsWritingMemo(true)}
+          >
+            메모 작성하기
+          </button>
+        </div>
+      </div>
 
-      {/* 메모 입력 폼 */}
-      <div className={`${isDarkMode ? "bg-gray-800 text-white border-gray-600" : "bg-white text-gray-800 border-gray-300"} w-full max-w-4xl p-6 rounded-lg shadow-lg mb-8`}>
-        {/* 기본 입력 필드 */}
+      {/* 펼쳐 있을 때 */}
+      <div
+        className={
+          `transition-all duration-300 ease-in-out
+          ${isWritingMemo ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0 hidden'}
+          ${isDarkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-300'}
+          w-full max-w-4xl p-6 rounded-lg shadow-lg mb-8`
+        }
+      >
+        <div className="flex justify-between items-center mb-4">
+          <span className="text-lg font-medium">메모 작성 폼</span>
+          <button
+            className="px-4 py-1 bg-red-500 hover:bg-red-600 text-white rounded-md"
+            onClick={() => setIsWritingMemo(false)}
+          >
+            취소
+          </button>
+        </div>
+      {/* 기본 입력 필드 */}
         <div className="mb-6">
           <input
             type="text"
