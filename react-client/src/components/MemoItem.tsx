@@ -52,7 +52,6 @@ export const MemoItem: React.FC<MemoItemProps> = ({
   const { user: storedUser } = useUser();
 
   // 편집 모드에서 사용할 로컬 상태 - 수정됨: shareType 포함
-  const [localSearchName, setLocalSearchName] = useState("");
   const [localSearchLoginId, setLocalSearchLoginId] = useState("");
   const [localSearchUserResults, setLocalSearchUserResults] = useState<MemoUser[]>([]);
   const [localEditContent, setLocalEditContent] = useState({
@@ -94,13 +93,13 @@ export const MemoItem: React.FC<MemoItemProps> = ({
 
   // 로컬 사용자 검색 함수
   const searchUsersLocally = async () => {
-    if (!localSearchName.trim() || !localSearchLoginId.trim()) {
+    if (!localSearchLoginId.trim()) {
       setLocalSearchUserResults([]);
       return;
     }
     try {
       const response = await axios.get(`/user/search`, {
-        params: { name: localSearchName, loginId: localSearchLoginId },
+        params: { loginId: localSearchLoginId },
         withCredentials: true,
         headers: { "X-API-Request": "true" },
       });
@@ -123,7 +122,6 @@ export const MemoItem: React.FC<MemoItemProps> = ({
       ? currentSharedUsers.map((u) => (u.id === user.id ? { ...u, shareType } : u))
       : [...currentSharedUsers, { ...user, shareType }];
     setLocalEditContent({ ...localEditContent, sharedUsers: newSharedUsers });
-    setLocalSearchName("");
     setLocalSearchLoginId("");
     setLocalSearchUserResults([]);
   };
@@ -204,16 +202,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
               <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
                 공유 사용자 수정
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  placeholder="이름"
-                  value={localSearchName}
-                  onChange={(e) => setLocalSearchName(e.target.value)}
-                  className={`w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500 ${
-                    isDarkMode ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700" : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
-                  }`}
-                />
+              <div className="space-y-4">
                 <input
                   type="text"
                   placeholder="로그인 ID"
@@ -223,21 +212,20 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                     isDarkMode ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700" : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
                   }`}
                 />
+                <button
+                  onClick={searchUsersLocally}
+                  className={`w-full py-2 rounded-md text-white font-medium transition-all duration-200 ${
+                    isDarkMode ? "bg-indigo-700 hover:bg-indigo-800" : "bg-indigo-600 hover:bg-indigo-700"
+                  }`}
+                >
+                  사용자 검색
+                </button>
               </div>
-              <button
-                onClick={searchUsersLocally}
-                className={`mt-2 w-full py-2 rounded-md text-white font-medium transition-all duration-200 ${
-                  isDarkMode ? "bg-indigo-700 hover:bg-indigo-800" : "bg-indigo-600 hover:bg-indigo-700"
-                }`}
-              >
-                사용자 검색
-              </button>
               {localSearchUserResults.length > 0 && (
                 <div
                   className={`relative mt-2 w-full max-h-[50vh] overflow-y-auto rounded-md shadow-lg transition-all duration-200 ${
                     isDarkMode ? "bg-gray-700 text-white" : "bg-white text-gray-800"
                   }`}
-                  style={{ maxHeight: "50vh", top: "100%" }}
                 >
                   {localSearchUserResults.map((user) => (
                     <div key={user.id} className="p-3 flex justify-between items-center">
@@ -273,19 +261,27 @@ export const MemoItem: React.FC<MemoItemProps> = ({
               {selectedUsers.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {selectedUsers.map((user) => (
-                    <div
+                    <span
                       key={user.id}
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium max-w-[150px] truncate relative group ${
                         isDarkMode ? "bg-indigo-700 text-white" : "bg-indigo-100 text-indigo-800"
                       }`}
+                      aria-label={`Shared with ${user.name} with ${user.shareType} permission`}
                     >
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                      </svg>
                       {user.name} ({user.loginId}) - {user.shareType}
+                      <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-1 -top-8 left-1/2 transform -translate-x-1/2 z-10">
+                        {user.shareType === "edit" ? "수정: 메모 편집 가능" : "조회: 메모 보기만 가능"}
+                      </span>
                       <button
                         onClick={() => setLocalEditContent({
                           ...localEditContent,
                           sharedUsers: selectedUsers.filter((u) => u.id !== user.id)
                         })}
                         className="ml-2 focus:outline-none"
+                        aria-label={`Remove ${user.name} from shared users`}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -297,7 +293,7 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
-                    </div>
+                    </span>
                   ))}
                 </div>
               )}
@@ -306,15 +302,28 @@ export const MemoItem: React.FC<MemoItemProps> = ({
         ) : (
           <div className={`p-6 rounded-lg shadow-md ${isDarkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"}`}>
             {/* 메모 제목 */}
-            <h4 className={`mb-3 text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+            <h4 className={`mb-3 text-xl font-semibold flex items-center gap-2 ${isDarkMode ? "text-white" : "text-gray-800"}`}>
               [{memo.title}]
-              {!isOwned ? ` (shared by ${memo.insertUser?.loginId})` : null}
+              {!isOwned && memo.insertUser && (
+                <span
+                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium relative group ${isDarkMode ? "bg-indigo-700 text-white" : "bg-indigo-100 text-indigo-800"}`}
+                  aria-label={`Shared by ${memo.insertUser.name} with ${canEdit? "edit" : "view"} permission`}
+                >
+                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                  </svg>
+                  {memo.insertUser.name} ({memo.insertUser.loginId}) - {canEdit? "edit" : "view"}
+                  <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-1 -top-8 left-1/2 transform -translate-x-1/2 z-10">
+                    {canEdit? "수정: 메모 편집 가능" : "조회: 메모 보기만 가능"}
+                  </span>
+                </span>
+              )}
             </h4>
             {memo.subject && (
               <p className={`mb-2 text-sm font-medium ${isDarkMode ? "text-indigo-300" : "text-indigo-500"}`}>
                 주제: {memo.subject}
               </p>
-            )}
+            )}         
             <textarea
               readOnly
               ref={(el) => el && textareaRefs.current.set(`raws_${memo.seq}`, el)}
@@ -345,11 +354,18 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                   {memo.sharedUsers.map((user) => (
                     <span
                       key={user.id}
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium max-w-[150px] truncate relative group ${
                         isDarkMode ? "bg-indigo-700 text-white" : "bg-indigo-100 text-indigo-800"
                       }`}
+                      aria-label={`Shared with ${user.name} with ${user.shareType} permission`}
                     >
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                      </svg>
                       {user.name} ({user.loginId}) - {user.shareType}
+                      <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-1 -top-8 left-1/2 transform -translate-x-1/2 z-10">
+                        {user.shareType === "edit" ? "수정: 메모 편집 가능" : "조회: 메모 보기만 가능"}
+                      </span>
                     </span>
                   ))}
                 </div>

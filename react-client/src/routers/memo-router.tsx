@@ -23,7 +23,6 @@ export const MemoRouter = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // 사용자 검색 및 선택 상태 (신규 메모 입력용)
-  const [searchName, setSearchName] = useState<string>("");
   const [searchLoginId, setSearchLoginId] = useState<string>("");
   const [searchUserResults, setSearchUserResults] = useState<MemoUser[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<MemoUser[]>([]); // shareType 포함
@@ -105,13 +104,13 @@ export const MemoRouter = () => {
 
   // 사용자 검색 (신규 메모 입력용)
   const searchUsers = async () => {
-    if (!searchName.trim() || !searchLoginId.trim()) {
+    if (!searchLoginId.trim()) {
       setSearchUserResults([]);
       return;
     }
     try {
       const response = await axios.get(`/user/search`, {
-        params: { name: searchName, loginId: searchLoginId },
+        params: { loginId: searchLoginId },
         withCredentials: true,
         headers: { "X-API-Request": "true" },
       });
@@ -136,7 +135,6 @@ export const MemoRouter = () => {
         return [...prev, { ...user, shareType }];
       }
     });
-    setSearchName("");
     setSearchLoginId("");
     setSearchUserResults([]);
   };
@@ -274,7 +272,6 @@ export const MemoRouter = () => {
         setRaws("");
         setAskAI(false);
         setSelectedUsers([]);
-        setSearchName("");
         setSearchLoginId("");
         setSearchUserResults([]);
         alert("메모가 성공적으로 추가되었습니다.");
@@ -425,28 +422,25 @@ export const MemoRouter = () => {
           <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
             공유 사용자 추가
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <input
-              type="text"
-              placeholder="이름"
-              className={`${isDarkMode ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700" : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"} w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500`}
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
-            />
+          <div className="space-y-4">
             <input
               type="text"
               placeholder="로그인 ID"
-              className={`${isDarkMode ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700" : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"} w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500`}
               value={searchLoginId}
               onChange={(e) => setSearchLoginId(e.target.value)}
+              className={`w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500 ${
+                isDarkMode ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700" : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
+              }`}
             />
+            <button
+              onClick={searchUsers}
+              className={`w-full py-2 rounded-md text-white font-medium transition-all duration-200 ${
+                isDarkMode ? "bg-indigo-700 hover:bg-indigo-800" : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
+            >
+              사용자 검색
+            </button>
           </div>
-          <button
-            onClick={searchUsers}
-            className={`${isDarkMode ? "bg-indigo-700 hover:bg-indigo-800" : "bg-indigo-600 hover:bg-indigo-700"} mt-2 w-full py-2 rounded-md text-white font-medium transition-all duration-200`}
-          >
-            사용자 검색
-          </button>
           {searchUserResults.length > 0 && (
             <div
               className={`relative mt-2 w-full max-h-[50vh] overflow-y-auto rounded-md shadow-lg transition-all duration-200 ${isDarkMode ? "bg-gray-700 text-white" : "bg-white text-gray-800"}`}
