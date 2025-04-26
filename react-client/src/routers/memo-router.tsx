@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar";
 import DarkButton from "../components/DarkButton";
 import Searchbar from "../components/Searchbar";
 import { MemoItem } from "../components/MemoItem";
-import { MemoUser, Memo } from "../types/memo";
+import { MemoUser, Memo, UploadFile } from "../types/memo";
 import { useUser } from "../contexts/UserContext";
 
 export const MemoRouter = () => {
@@ -153,7 +153,8 @@ export const MemoRouter = () => {
   };
 
   // 수정 저장
-  const updateMemo = async (memoId: number, updatedContent: Partial<Memo>) => {
+  const updateMemo = async (memoId: number, updatedContent: Partial<Memo>, existingFiles?: UploadFile[], newFiles?: File[], removedFiles?: UploadFile[],
+) => {
     const prevMemo = memos.find((el) => el.seq === memoId);
     if (
       prevMemo?.answer === updatedContent.answer &&
@@ -162,6 +163,8 @@ export const MemoRouter = () => {
       prevMemo?.title === updatedContent.title &&
       JSON.stringify(prevMemo?.sharedUsers?.map((u) => ({ id: u.id, shareType: u.shareType }))) ===
         JSON.stringify(updatedContent.sharedUsers?.map((u) => ({ id: u.id, shareType: u.shareType })))
+
+
     ) {
       cancelMemo(memoId);
       return;
@@ -174,11 +177,13 @@ export const MemoRouter = () => {
       raws: updatedContent.raws,
       sharedInfosJson: JSON.stringify(updatedContent.sharedUsers?.map((u) => ({ id: u.id, shareType: u.shareType }))),
     };
+  
     try {
       const response = await axios.post(
         `/memo/update`, updateMemo,
         { withCredentials: true, headers: { "X-API-Request": "true" } }
       );
+
       if (response.data.result) {
         const updatedMemos = memos.map((memo) =>
           memo.seq === memoId ? response.data.memos[0] : memo

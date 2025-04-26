@@ -10,6 +10,7 @@ import { UserProvider } from './contexts/UserContext';
 import { DarkModeProvider } from './contexts/DarkModeContext';
 import NotFound from './components/NotFound';
 import UserProfile from './routers/user-profile-router';
+import { ChatRouter } from './routers/chat.router';
 
 const ProtectedRoutes = () => {
   return (
@@ -21,6 +22,7 @@ const ProtectedRoutes = () => {
         <Route path="/user/profile" element={<UserProfile />} />
         <Route path="/codes" element={<CodelistRouter />} />
         <Route path="/queries" element={<QueryRouter />} />
+        <Route path="/chats" element={<ChatRouter />} />
         <Route path="*" element={<NotFound />} />
     </Routes>
   );

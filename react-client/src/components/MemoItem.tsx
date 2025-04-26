@@ -1,8 +1,7 @@
-/** 2025.04.17 #1 */
 import React, { useState, useEffect } from "react";
 import { useSwipeable } from "react-swipeable";
 import { useUser } from "../contexts/UserContext";
-import { MemoUser, Memo } from "../types/memo";
+import { MemoUser, Memo, UploadFile } from "../types/memo";
 import axios from "axios";
 import { MemoUserTag } from "./MemoUserTag";
 
@@ -16,7 +15,14 @@ interface MemoItemProps {
   isScreenNarrow: boolean;
   startEditing: (memo: Memo) => void;
   cancelMemo: (memoSeq: number) => void;
-  updateMemo: (memoSeq: number, updatedContent: Partial<Memo>) => void;
+  updateMemo: (
+    memoSeq: number,
+    updatedContent: Partial<Memo> & {
+      existingFiles?: UploadFile[];
+      newFiles?: File[];
+      removedFiles?: UploadFile[];
+    }
+  ) => void;
   deleteMemo: (memoSeq: number) => void;
   toggleExpanded: (memoSeq: number) => void;
   textareaRefs: React.MutableRefObject<Map<string, HTMLTextAreaElement>>;
@@ -49,12 +55,12 @@ export const MemoItem: React.FC<MemoItemProps> = ({
   handleDownload,
   handleAnalyze,
 }) => {
-  const [isSwiped, setIsSwiped] = useState(false);
   const { user: storedUser } = useUser();
 
-  // 편집 모드에서 사용할 로컬 상태 - 수정됨: shareType 포함
-  const [localSearchLoginId, setLocalSearchLoginId] = useState("");
-  const [localSearchUserResults, setLocalSearchUserResults] = useState<MemoUser[]>([]);
+  // Swipe state
+  const [isSwiped, setIsSwiped] = useState(false);
+
+  // Local edit states
   const [localEditContent, setLocalEditContent] = useState({
     title: "",
     subject: "",
@@ -62,6 +68,11 @@ export const MemoItem: React.FC<MemoItemProps> = ({
     answer: "",
     sharedUsers: [] as MemoUser[],
   });
+  const [localExistingFiles, setLocalExistingFiles] = useState<UploadFile[]>(memo.files || []);
+  const [localNewFiles, setLocalNewFiles] = useState<File[]>([]);
+  const [localRemovedFiles, setLocalRemovedFiles] = useState<UploadFile[]>([]);
+  const [localSearchLoginId, setLocalSearchLoginId] = useState("");
+  const [localSearchUserResults, setLocalSearchUserResults] = useState<MemoUser[]>([]);
 
   // 수정 모드 시작 시 editMemoContent로 localEditContent 동기화
   useEffect(() => {
@@ -195,6 +206,38 @@ export const MemoItem: React.FC<MemoItemProps> = ({
                 }`}
                 placeholder="응답"
                 style={{ height: "auto" }}
+              />
+            </div>
+
+            {/* 파일 수정 섹션 */}
+            <div className={`p-4 rounded-md ${isDarkMode ? "bg-gray-700" : "bg-gray-100"} mb-6`}>
+              <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>첨부 파일 수정</h3>
+              {/* 기존 파일 목록 */}
+              {localExistingFiles.length > 0 && (
+                <div className="mb-2 space-y-2">
+                  {localExistingFiles.map((file, idx) => (
+                    <div key={idx} className="flex items-center justify-between">
+                      <span className="truncate">{file.fileName}</span>
+                      <button
+                        onClick={() => {
+                          setLocalExistingFiles((prev) => prev.filter((f) => f !== file));
+                          setLocalRemovedFiles((prev) => [...prev, file]);
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >제거</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* 새 파일 선택 */}
+              <input
+                type="file"
+                multiple
+                onChange={(e) => {
+                  const chosen = e.target.files ? Array.from(e.target.files) : [];
+                  setLocalNewFiles(chosen);
+                }}
+                className="w-full"
               />
             </div>
 
@@ -395,19 +438,20 @@ export const MemoItem: React.FC<MemoItemProps> = ({
           {isEditing ? (
             <>
               <button
-                onClick={() => updateMemo(memo.seq, localEditContent)}
+                onClick={() => updateMemo(memo.seq, {
+                  ...localEditContent,
+                  existingFiles: localExistingFiles,
+                  newFiles: localNewFiles,
+                  removedFiles: localRemovedFiles,
+                })}
                 className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition"
                 aria-label="저장"
-              >
-                ✓
-              </button>
+              >✓</button>
               <button
                 onClick={() => cancelMemo(memo.seq)}
                 className="w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition"
                 aria-label="취소"
-              >
-                ✕
-              </button>
+              >✕</button>
             </>
           ) : (
             <>
